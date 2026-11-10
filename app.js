@@ -1,4 +1,4 @@
-fetch("data/kev-dashboard.json")
+fetch("kev-dashboard.json")
 .then(r => r.json())
 .then(data => {
 
