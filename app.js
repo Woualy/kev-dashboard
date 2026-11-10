@@ -1,34 +1,42 @@
-fetch("kev-dashboard.json")
-.then(r => r.json())
+fetch("data/kev-dashboard.json")
+.then(response => response.json())
 .then(data => {
 
-document.getElementById("stats").innerHTML =
-`
-<p>
-KEV Totaux : ${data.total_kev}<br>
-Nouveaux CVE 30 jours : ${data.new_cve_30d}
-</p>
-`;
+    console.log(data);
 
-let tbody =
-document.querySelector("#kevTable tbody");
+    document.getElementById("stats").innerHTML =
+    `
+    <p>
+        KEV Totaux : ${data.total_kev}<br>
+        Nouveaux CVE 30 jours : ${data.new_cve_30d}
+    </p>
+    `;
 
-data.latest_kev.forEach(item => {
+    const tbody = document.querySelector("#kevTable tbody");
 
-tbody.innerHTML += `
-<tr>
-<td>${item.cve}</td>
-<td>${item.vendor}</td>
-<td>${item.date}</td>
-<td>${item.cvss}</td>
-</tr>
-`;
+    if (data.latest_kev && data.latest_kev.length > 0) {
 
-});
+        data.latest_kev.forEach(item => {
+
+            tbody.innerHTML += `
+            <tr>
+                <td>${item.cve}</td>
+                <td>${item.vendor}</td>
+                <td>${item.date}</td>
+                <td>${item.cvss}</td>
+            </tr>
+            `;
+
+        });
+
+    }
 
 })
 .catch(error => {
-    console.error(error);
+
+    console.error("Erreur JSON :", error);
+
     document.getElementById("stats").innerHTML =
-        "<p style='color:red'>Impossible de charger les données.</p>";
+    "<p style='color:red'>Impossible de charger les données.</p>";
+
 });
