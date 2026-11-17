@@ -23,7 +23,7 @@ FEEDS = [  # mêmes id que le dashboard ; modifie cette liste pour ajouter des f
     dict(id="2", name="CERT-FR – Avis", url="https://www.cert.ssi.gouv.fr/avis/feed/", lang="FR"),
     dict(id="3", name="Zataz", url="https://www.zataz.com/feed/", lang="FR"),
     dict(id="8", name="Cybermalveillance.gouv.fr", url="https://www.cybermalveillance.gouv.fr/feed/atom-flux-complet", lang="FR"),
-    dict(id="6", name="CISA Advisories", url="https://www.cisa.gov/cybersecurity-advisories/all.xml", lang="EN"),
+    dict(id="6", name="The Hacker News", url="https://feeds.feedburner.com/TheHackersNews", lang="EN"),
     dict(id="7", name="BleepingComputer", url="https://www.bleepingcomputer.com/feed/", lang="EN"),
 ]
 
