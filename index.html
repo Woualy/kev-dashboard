@@ -1,61 +1,378 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
 <meta charset="utf-8">
-<title>KEV Dashboard</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src https:; img-src data:; frame-src https://threatmap.checkpoint.com https://threatmap.bitdefender.com https://livethreatmap.radware.com https://talosintelligence.com">
+<title>Cyber mission control · France</title>
 <style>
-body{
-    font-family:Segoe UI, Arial;
-    margin:20px;
-    background:#f5f7fa;
-}
-
-h1{
-    color:#005A9C;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-    background:white;
-}
-
-th{
-    background:#005A9C;
-    color:white;
-}
-
-th,td{
-    padding:10px;
-    border:1px solid #ddd;
-}
+:root{--bg:#0c141d;--p:#131f2c;--p2:#1a2938;--b:#27394d;--t:#dbe4ee;--m:#8aa0b8;--a:#5bb0d6;--u:#f0605d;--h:#f29a4b;--md:#e8c85a;--i:#6fa8dc;--ok:#4cc38a;--lvl:#4cc38a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--t);font:14px/1.45 "Segoe UI Variable","Segoe UI",system-ui,sans-serif;font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+button{background:var(--p2);border:1px solid var(--b);border-radius:5px;padding:4px 10px;cursor:pointer}
+button:hover{border-color:var(--a)}
+:focus-visible{outline:2px solid var(--a);outline-offset:1px}
+input,select{background:var(--bg);border:1px solid var(--b);border-radius:5px;padding:4px 8px;min-width:0}
+a{color:inherit}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid var(--b);background:#0f1a26}
+.brand{font-weight:700;font-size:17px;margin-right:auto}
+.brand small{display:block;font-weight:400;font-size:12px;color:var(--m)}
+#clock{font-size:20px;font-weight:600}
+#st{color:var(--m);font-size:12px}
+.err{color:#f4a09e}.good{color:var(--ok)}
+#vig{display:flex;flex-wrap:wrap;gap:18px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--b);border-left:6px solid var(--lvl);background:linear-gradient(90deg,color-mix(in srgb,var(--lvl) 14%,var(--bg)),var(--bg) 60%)}
+#vig h1{margin:0;font-size:26px;font-weight:700;color:var(--lvl)}
+#vig .sub{color:var(--m);font-size:13px}
+.seg{display:flex;gap:4px}.seg i{width:34px;height:8px;border-radius:2px;background:var(--b)}.seg i.on{background:var(--lvl)}
+main{padding:16px 18px;display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr));margin:0 auto}
+@media(max-width:1000px){main{grid-template-columns:1fr 1fr}}@media(max-width:650px){main{grid-template-columns:1fr}}
+@media(min-width:2300px){body{font-size:15px}main{grid-template-columns:repeat(12,minmax(0,1fr))}#p-cert,#p-leak,#p-kev,#p-new{grid-column:span 3}#p-feed{grid-column:span 5}#p-stats,#p-cve{grid-column:span 2}#p-map{grid-column:span 3;order:2}.list{max-height:320px}#frame{height:340px}.k b{font-size:30px}}
+.kpis{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.k{background:var(--p);border:1px solid var(--b);border-radius:8px;padding:10px 12px}
+.k b{display:block;font-size:26px;line-height:1.1}.k span{color:var(--m);font-size:12px}
+.k.hot b{color:var(--u)}.k.warm b{color:var(--h)}
+section{background:var(--p);border:1px solid var(--b);border-radius:8px;padding:10px 12px;min-width:0}
+section.w3{grid-column:1/-1}section.w2{grid-column:span 2}@media(max-width:650px){section.w2{grid-column:auto}}
+h2{margin:0 0 8px;font-size:14px;font-weight:600;display:flex;gap:8px;align-items:center}
+h2 small{margin-left:auto;font-weight:400;color:var(--m);font-size:12px}
+.row{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;padding:6px 0;border-top:1px solid var(--b);align-items:baseline}
+.row:first-of-type{border-top:0}
+.row.rd{opacity:.5}
+.row a{text-decoration:none;font-weight:600;overflow-wrap:anywhere}.row a:hover{color:var(--a)}
+.row .meta{grid-column:2;color:var(--m);font-size:12px}
+.sv{border-radius:4px;padding:0 6px;font-size:11px;font-weight:700;border:1px solid}
+.sv.u{color:#f9b3b1;border-color:#f0605d88;background:#f0605d22}.sv.h{color:#f8c192;border-color:#f29a4b88;background:#f29a4b22}
+.sv.m{color:#efd985;border-color:#e8c85a88;background:#e8c85a1f}.sv.i{color:#a9cbea;border-color:#6fa8dc66;background:#6fa8dc1a}
+.tag{border:1px solid var(--b);border-radius:4px;padding:0 5px;color:#9cc7e0;font-size:11px}
+.tag.w{color:var(--u);border-color:#f0605d88}
+.hb{display:grid;grid-template-columns:130px 1fr 34px;gap:8px;align-items:center;font-size:12px;margin:5px 0}
+.hb i{display:block;height:8px;border-radius:2px;background:var(--a)}.hb i.w{background:var(--u)}.hb span:last-child{text-align:right;color:var(--m)}
+.ctl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}.ctl input{flex:1;min-width:140px}
+.list{max-height:420px;overflow:auto}
+.empty{color:var(--m);padding:14px 0}
+svg{width:100%;height:auto;display:block}
+.bar{fill:var(--a)}.bar.cur{fill:var(--a);opacity:.4}
+.maps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.maps button.on{background:var(--a);color:#06121c;border-color:var(--a)}
+#frame{width:100%;height:340px;border:1px solid var(--b);border-radius:6px;background:#000;display:none}
+#modal{display:none;position:fixed;inset:0;z-index:9;background:#000b;padding:16px;overflow:auto}#modal.on{display:block}
+.box{background:var(--p);border:1px solid var(--b);border-radius:10px;max-width:720px;margin:20px auto;padding:16px}
+.fl{display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--b);font-size:13px}.fl div{flex:1;min-width:0}.fl small{display:block;color:var(--m);overflow-wrap:anywhere}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}.f input:nth-child(2){grid-column:1/-1}
+.foot{display:flex;justify-content:space-between;margin-top:10px}
+@media(prefers-reduced-motion:no-preference){.pulse{animation:p 1.4s infinite}@keyframes p{50%{opacity:.45}}}
 </style>
-
 </head>
-
 <body>
+<header>
+  <div class="brand">Cyber mission control<small>Veille France · actualisation automatique toutes les 30 min · build 17/11-d</small></div>
+  <div id="clock"></div><div id="st"></div>
+  <button data-a="refresh" title="Actualiser maintenant" aria-label="Actualiser">⟳</button>
+  <button data-a="net">Réseau</button><button data-a="feeds">Flux</button><button data-a="csv">Export CSV</button>
+</header>
+<div id="vig"></div>
+<main>
+  <div class="kpis" id="kpis"></div>
+  <section id="p-cert"></section><section id="p-leak"></section><section id="p-kev"></section>
+  <section id="p-new" class="w2"></section><section id="p-map"></section>
+  <section id="p-feed" class="w2"></section><section id="p-stats"></section>
+  <section id="p-cve" class="w3"></section>
+</main>
+<div id="modal"></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl=u=>/^https?:\/\//i.test(u)?u:'#';
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+try{localStorage.removeItem('cv_leakix_key');localStorage.removeItem('cv_leakix_domain')}catch{} // LeakIX retiré : on efface l'ancienne clé API
+const DAY=864e5,fmt=ts=>ts?new Date(ts).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}):'date inconnue';
+const KEVM='https://raw.githubusercontent.com/cisagov/kev-data/develop/known_exploited_vulnerabilities.json',KEV='https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json',CVE='https://cve.0xosprey.com/data.json';
+const GH='https://raw.githubusercontent.com/CVEProject/cvelistV5/main/cves/';
+const MAPS=[['Check Point','https://threatmap.checkpoint.com/'],['Bitdefender','https://threatmap.bitdefender.com/'],['Radware','https://livethreatmap.radware.com/'],['Talos spam','https://talosintelligence.com/ebc_spam']];
 
-<h1>Dashboard KEV</h1>
+/* ---- Flux ---- */
+const DEF=[
+ {id:'fb',name:'FrenchBreaches',url:'https://frenchbreaches.com/feed.xml',cat:'Fuites de données',lang:'FR'},
+ {id:'1',name:'CERT-FR – Alertes',url:'https://www.cert.ssi.gouv.fr/alerte/feed/',cat:'Vulnérabilités',lang:'FR'},
+ {id:'2',name:'CERT-FR – Avis',url:'https://www.cert.ssi.gouv.fr/avis/feed/',cat:'Vulnérabilités',lang:'FR'},
+ {id:'3',name:'Zataz',url:'https://www.zataz.com/feed/',cat:'Actu Cyber',lang:'FR'},
+ {id:'8',name:'Cybermalveillance.gouv.fr',url:'https://www.cybermalveillance.gouv.fr/feed/atom-flux-complet',cat:'Actu Cyber',lang:'FR'},
+ {id:'6',name:'CISA Advisories',url:'https://www.cisa.gov/cybersecurity-advisories/all.xml',cat:'Vulnérabilités',lang:'EN'},
+ {id:'7',name:'BleepingComputer',url:'https://www.bleepingcomputer.com/feed/',cat:'Actu Cyber',lang:'EN'}];
+const zone=f=>/cert\.ssi\.gouv/.test(f.url)?(/alerte/.test(f.url)?'alerte':'avis'):/frenchbreaches/.test(f.url)?'leak':f.lang==='FR'?'fr':'int';
+function loadFeeds(){let f=store.get('cv_feeds',null)||DEF.slice();if(!f.some(x=>/frenchbreaches/.test(x.url)))f.unshift(DEF[0]);return f}
+const S={feeds:loadFeeds(),items:store.get('cv_cache',[]),st:{},read:new Set(store.get('cv_read',[])),kev:store.get('cv_kev',null),cve:store.get('cv_cve',null),
+ watch:store.get('cv_watch','Microsoft, Fortinet, Citrix, Cisco, Ivanti, VMware, Palo Alto, Veeam'),gh:store.get('cv_gh',null),rec:store.get('cv_rec',{}),ghf:store.get('cv_ghf',true),gerr:'',kerr:'',cerr:'',map:'',loading:false,last:store.get('cv_last',0),timer:1800};
+S.items.forEach(a=>{if(!a.z){const f=S.feeds.find(x=>x.id===a.fid);a.z=f?zone(f):'int'}}); // anciens caches sans zone
+S.fail={};S.base=store.get('cv_base','https://raw.githubusercontent.com/Woualy/kev-dashboard/data/');S.srv=null;
+const saveFeeds=()=>store.set('cv_feeds',S.feeds),saveRead=()=>store.set('cv_read',[...S.read].slice(-3000));
 
-<div id="stats"></div>
+const ROUTES=[['direct',u=>u],['codetabs',u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u)],['corsproxy',u=>'https://corsproxy.io/?'+encodeURIComponent(u)],['allorigins',u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)]];
+async function getText(url,ok,ms=15000){
+  const us=[].concat(url),at=[],errs=[];
+  us.forEach(u=>at.push(['direct '+new URL(u).hostname,u]));
+  const pref=store.get('cv_route','');
+  ROUTES.slice(1).sort((a,b)=>(b[0]===pref)-(a[0]===pref)).forEach(([n,p])=>at.push([n,p(us[us.length-1])])); // les proxys ne servent que pour la dernière URL (source officielle)
+  for(const [n,u] of at){
+    if(S.fail[n]>=2){errs.push(n+' : ignoré (proxy trop lent)');continue}
+    const ac=new AbortController(),to=setTimeout(()=>ac.abort(),ms);
+    try{const r=await fetch(u,{signal:ac.signal});if(!r.ok)throw Error('HTTP '+r.status);const t=await r.text();if(!ok(t))throw Error('réponse inattendue');if(ROUTES.some(r=>r[0]===n&&n!=='direct'))store.set('cv_route',n);return{t,via:n}}
+    catch(e){if(e.name==='AbortError'&&ROUTES.some(r=>r[0]===n))S.fail[n]=(S.fail[n]||0)+1;errs.push(n+' : '+(e.name==='AbortError'?'délai dépassé':e.message))}finally{clearTimeout(to)}
+  }
+  throw Error(errs.join(' · '));
+}
+const g=(el,n)=>{const x=el.getElementsByTagName(n)[0];return x?x.textContent.trim():''};
+function plain(h,len){const d=new DOMParser().parseFromString(h||'','text/html');const t=d.body.textContent.replace(/\s+/g,' ').trim();return len&&t.length>len?t.slice(0,len).replace(/\s\S*$/,'')+'…':t}
+const W=a=>new RegExp('(?<![\\p{L}\\d])(?:'+a.join('|')+')(?![\\p{L}\\d])','iu');
+const RU=W(['critique','critical','zero-?days?','0-?days?','activement exploit\\p{L}*','actively exploited','ransomware','rançongiciel','lockbit','urgence']);
+const RH=W(['rce','remote code execution','exécution de code à distance','élévation de privilèges','privilege escalation','contournement','bypass','cve-\\d{4}-\\d+','compromission','fuite','breach','mots? de passe','santé','passeport','identité','bancaires?']);
+const RM=W(['dos','ddos','déni de service','phishing','hameçonnage','vulnérabilités?','vulnerability','xss','injection','mises? à jour','patch']);
+const SEV={URGENT:['u',4],'ÉLEVÉ':['h',3],MOYEN:['m',2],INFO:['i',1]};
+function volume(t){let v=0;for(const x of t.matchAll(/(\d+(?:[.,]\d+)?)\s?millions?/gi))v=Math.max(v,parseFloat(x[1].replace(',','.'))*1e6);for(const x of t.matchAll(/\d{1,3}(?:[\s\u00a0\u202f]\d{3})+/g))v=Math.max(v,+x[0].replace(/\D/g,''));return v}
+function severity(a,z){
+  const t=a.title+' '+a.sum+' '+a.cats.join(' ');
+  let lv=RU.test(t)||z==='alerte'?'URGENT':RH.test(t)?'ÉLEVÉ':RM.test(t)?'MOYEN':'INFO';
+  if(z==='leak'){if(a.rel==='confirmed'&&SEV[lv][1]<3)lv='ÉLEVÉ';if(a.rel==='credible'&&SEV[lv][1]<2)lv='MOYEN';if(a.vol>=1e6)lv='URGENT'}
+  return lv;
+}
+function parseXML(xml,f){
+  const d=new DOMParser().parseFromString(xml,'application/xml');if(d.querySelector('parsererror'))throw Error('XML invalide');
+  const z=zone(f);
+  return [...d.getElementsByTagName('item'),...d.getElementsByTagName('entry')].map(n=>{
+    const lk=n.getElementsByTagName('link')[0];let link=lk?(lk.getAttribute('href')||lk.textContent||'').trim():'';
+    const title=g(n,'title')||'(sans titre)',guid=g(n,'guid')||g(n,'id')||link;
+    const raw=g(n,'content:encoded')||g(n,'content')||g(n,'description')||g(n,'summary');
+    const ds=g(n,'pubDate')||g(n,'published')||g(n,'updated')||g(n,'dc:date'),ts=ds?Date.parse(ds):0;
+    const cats=[...n.getElementsByTagName('category')].map(c=>c.textContent.trim()||c.getAttribute('term')||'');
+    const a={id:f.id+'|'+(guid||link||title),fid:f.id,z,title:plain(title),link:safeUrl(link),sum:plain(raw,200),ts:isNaN(ts)?0:ts,src:f.name,lang:f.lang,cats,
+      rel:z==='leak'?(cats.find(c=>/^(confirmed|credible)$/i.test(c))||'').toLowerCase():''};
+    a.vol=z==='leak'?volume(a.title+' '+a.sum):0;a.sev=severity(a,z);return a;
+  });
+}
+async function loadKev(){
+  try{const {t,via}=await getText([KEVM,KEV],x=>x.includes('"vulnerabilities"'),40000);const j=JSON.parse(t);
+    S.kev={via,total:j.count,rel:j.dateReleased,v:j.vulnerabilities.map(x=>({id:x.cveID,v:x.vendorProject,p:x.product,n:x.vulnerabilityName,d:x.dateAdded,r:x.knownRansomwareCampaignUse==='Known',due:x.dueDate})).sort((a,b)=>b.d.localeCompare(a.d)).slice(0,80)};
+    store.set('cv_kev',S.kev);S.kerr='';
+  }catch(e){S.kerr=e.message}
+}
+function compact(j,x){
+  const c=j.containers?.cna||{},ad=j.containers?.adp||[];let sc=0,ex='';
+  [...(c.metrics||[]),...ad.flatMap(a=>a.metrics||[])].forEach(m=>{
+    for(const k of ['cvssV4_0','cvssV3_1','cvssV3_0'])if(m[k]?.baseScore>sc)sc=m[k].baseScore;
+    if(m.other?.type==='ssvc')(m.other.content?.options||[]).forEach(q=>{if(q.Exploitation)ex=q.Exploitation});
+  });
+  const a=(c.affected||[])[0]||{};
+  return {id:x.id,ts:x.ts,v:a.vendor||'',p:a.product||'',t:(c.title||(c.descriptions||[])[0]?.value||'').replace(/\s+/g,' ').slice(0,140),s:sc,e:ex};
+}
+async function loadGh(){ // journal des deltas du dépôt cvelistV5 : on ne lit que le début (≈ 2 jours) grâce à une requête Range
+  try{
+    const r=await fetch(GH+'deltaLog.json',{headers:{Range:'bytes=0-4000000'}});if(!r.ok)throw Error('HTTP '+r.status);
+    const t=await r.text(),i=t.lastIndexOf('\n  },');if(i<0)throw Error('journal illisible');
+    const log=JSON.parse(t.slice(0,i)+'\n  }]'),now=Date.now(),m=new Map();
+    log.forEach(e=>e.new.forEach(n=>{if(!m.has(n.cveId))m.set(n.cveId,{id:n.cveId,ts:Date.parse(n.dateUpdated),l:n.githubLink})}));
+    const arr=[...m.values()].sort((a,b)=>b.ts-a.ts),hours=Array(48).fill(0);
+    arr.forEach(x=>{const h=Math.floor((now-x.ts)/36e5);if(h>=0&&h<48)hours[47-h]++});
+    const todo=arr.filter(x=>!S.rec[x.id]&&now-x.ts<2*DAY).slice(0,120);
+    for(let k=0;k<todo.length;k+=10)await Promise.all(todo.slice(k,k+10).map(async x=>{try{const j=await (await fetch(x.l)).json();S.rec[x.id]=compact(j,x)}catch{}}));
+    const keep=new Set(arr.map(x=>x.id));for(const id in S.rec)if(!keep.has(id))delete S.rec[id];
+    const d0=new Date();d0.setHours(0,0,0,0);const cov=Date.parse(log[log.length-1].fetchTime),days=[];
+    for(let k=6;k>=0;k--){const a=new Date(d0);a.setDate(a.getDate()-k);const b=new Date(a);b.setDate(b.getDate()+1);if(a.getTime()<cov)continue;days.push([a.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'}),arr.filter(x=>x.ts>=a&&x.ts<b).length])}
+    S.gh={at:now,since:Date.parse(log[log.length-1].fetchTime),n24:arr.filter(x=>now-x.ts<DAY).length,n48:arr.filter(x=>now-x.ts<2*DAY).length,hours,days,todo:todo.length};
+    store.set('cv_gh',S.gh);store.set('cv_rec',S.rec);S.gerr='';
+  }catch(e){S.gerr=e instanceof TypeError?'Accès à raw.githubusercontent.com bloqué (proxy ou pare-feu). Le bouton « Réseau » permet de le vérifier.':e.message}
+}
+async function loadCve(){
+  try{const {t,via}=await getText(CVE,x=>x.includes('"dayCounts"'),40000);const j=JSON.parse(t);
+    S.cve={via,at:j.generatedAt,total:j.total,days:j.days.slice(-90),dc:j.dayCounts.slice(-90),m:j.months.slice(-14),mc:j.counts.slice(-14)};
+    store.set('cv_cve',S.cve);S.cerr='';
+  }catch(e){S.cerr=e.message}
+}
+async function loadServer(){ // données préparées par GitHub Actions (branche « data »)
+  try{
+    const g=async f=>{const r=await fetch(S.base+f+'?t='+Math.floor(Date.now()/3e5));if(!r.ok)throw Error(f+' : HTTP '+r.status);return r.json()};
+    const [m,fe,kv,cv,hi]=await Promise.all(['meta.json','feeds.json','kev.json','cve.json','history.json'].map(f=>g(f).catch(e=>f==='history.json'?null:Promise.reject(e))));
+    const on=new Set(S.feeds.filter(f=>f.on!==false).map(f=>f.id));
+    S.items=fe.items.filter(a=>on.has(a.fid)).map(a=>{a.vol=a.z==='leak'?volume(a.title+' '+a.sum):0;a.sev=severity(a,a.z);return a}).sort((a,b)=>b.ts-a.ts).slice(0,500);
+    S.kev=kv;S.kerr='';S.gh=cv.gh;S.rec=cv.recs;S.gerr='';if(hi){S.cve=hi;S.cerr=''}
+    Object.entries(m.feeds||{}).forEach(([id,x])=>{S.st[id]=x.ok?{ok:1,n:x.n,via:'serveur'}:{ok:0,err:x.err||'erreur côté serveur'}});
+    S.srv={at:Date.parse(m.generatedAt),parts:m.parts};
+    store.set('cv_cache',S.items);store.set('cv_kev',S.kev);store.set('cv_gh',S.gh);store.set('cv_rec',S.rec);if(hi)store.set('cv_cve',hi);
+    return true;
+  }catch(e){S.srv=null;S.serr=e.message;return false}
+}
+async function pool(tasks,n){
+  const out=[];let i=0;
+  await Promise.all(Array.from({length:n},async()=>{while(i<tasks.length){const k=i++;try{out[k]={status:'fulfilled',value:await tasks[k]()}}catch(e){out[k]={status:'rejected',reason:e}}}}));
+  return out;
+}
+async function refresh(){
+  if(S.loading)return;S.loading=true;S.fail={};hdr();
+  if(await loadServer()){S.last=Date.now();S.timer=1800;store.set('cv_last',S.last);S.loading=false;render();return}
+  const heavy=Promise.all([loadKev(),loadGh()]).then(render); // GitHub raw : indépendant des proxys, lancé en parallèle
+  const act=S.feeds.filter(f=>f.on!==false);
+  // flux RSS d'abord, 3 à la fois (les proxys publics limitent les requêtes simultanées)
+  const res=await pool(act.map(f=>async()=>{const r=await getText(f.url,x=>!/<html[\s>]/i.test(x)&&/<(rss|feed|rdf:RDF)[\s>]/i.test(x),8000);const it=parseXML(r.t,f);S.st[f.id]={ok:1,n:it.length,via:r.via};return it}),4);
+  const seen=new Set(),all=[],failed=new Set();
+  const add=a=>{const k=a.link!=='#'?a.link:a.id;if(!seen.has(k)){seen.add(k);all.push(a)}};
+  res.forEach((r,i)=>{if(r.status==='fulfilled')r.value.forEach(add);else{failed.add(act[i].id);S.st[act[i].id]={ok:0,err:r.reason?.message||'Erreur'}}});
+  S.items.filter(a=>failed.has(a.fid)).forEach(add);
+  all.sort((a,b)=>b.ts-a.ts);S.items=all.slice(0,500);S.last=Date.now();S.timer=1800;
+  store.set('cv_cache',S.items);store.set('cv_last',S.last);render();
+  await loadCve(); // historique mensuel : proxys uniquement, en dernier
+  await heavy;S.loading=false;render();
+}
 
-<h2>Derniers CVE KEV</h2>
+/* ---- Calculs ---- */
+const ferr=zs=>S.feeds.filter(f=>f.on!==false&&zs.includes(zone(f))&&S.st[f.id]&&!S.st[f.id].ok).map(f=>`<div class="err" style="font-size:12px;margin-bottom:4px"><b>${esc(f.name)}</b> : ${esc(S.st[f.id].err)}</div>`).join('');
+const zi=z=>S.items.filter(a=>a.z===z);
+const since=(arr,d,k='ts')=>arr.filter(a=>Date.now()-a[k]<d*DAY);
+const watchRe=()=>{const w=S.watch.split(/[,;]/).map(s=>s.trim()).filter(Boolean).map(s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));return w.length?new RegExp(w.join('|'),'i'):null};
+const kevRecent=d=>(S.kev?.v||[]).filter(x=>Date.now()-Date.parse(x.d)<d*DAY);
+const kevHit=x=>{const r=watchRe();return r&&r.test(x.v+' '+x.p)};
+const recs=()=>Object.values(S.rec).sort((a,b)=>(kevHit(b)-kevHit(a))||b.s-a.s||b.ts-a.ts);
+const recHit=x=>{const r=watchRe();return r&&r.test(x.v+' '+x.p+' '+x.t)};
+function vigilance(){
+  const al=since(zi('alerte'),7).length,kv=kevRecent(7),kw=kv.filter(kevHit).length,lk=since(zi('leak'),7).filter(a=>a.sev==='URGENT').length;
+  const cw=Object.values(S.rec).filter(x=>Date.now()-x.ts<DAY&&x.s>=9&&recHit(x)).length;
+  const score=al*3+kw*2+kv.length+lk*2+cw;
+  const lv=score<6?0:score<14?1:score<26?2:3;
+  return {lv,score,cw,al,kv:kv.length,kw,lk,name:['Normale','Soutenue','Élevée','Critique'][lv],col:['#4cc38a','#e8c85a','#f29a4b','#f0605d'][lv]};
+}
 
-<table id="kevTable">
-<thead>
-<tr>
-<th>CVE</th>
-<th>Produit</th>
-<th>Date</th>
-<th>CVSS</th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
+/* ---- Rendu ---- */
+function rows(list,n,extra){
+  if(!list.length)return '<div class="empty">Aucun élément pour le moment.</div>';
+  return '<div class="list">'+list.slice(0,n).map(a=>`<div class="row ${S.read.has(a.id)?'rd':''}"><span class="sv ${SEV[a.sev][0]}">${a.sev}</span><a href="${esc(a.link)}" target="_blank" rel="noopener noreferrer" data-a="open" data-id="${esc(a.id)}">${esc(a.title)}</a><div class="meta">${esc(a.src)} · ${fmt(a.ts)}${extra?extra(a):''}</div></div>`).join('')+'</div>';
+}
+function bars(vals,labels,cur,h=70){
+  const w=300,mx=Math.max(...vals,1),bw=w/vals.length;
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="Histogramme">`+vals.map((v,i)=>{const bh=Math.max(1,v/mx*(h-4));return `<rect class="bar ${i===cur?'cur':''}" x="${(i*bw+.5).toFixed(1)}" y="${(h-bh).toFixed(1)}" width="${Math.max(bw-1,1).toFixed(1)}" height="${bh.toFixed(1)}"><title>${esc(labels[i])} : ${v.toLocaleString('fr-FR')}</title></rect>`}).join('')+'</svg>';
+}
+function render(){hdr();vig();kpis();panels()}
+function vig(){
+  const v=vigilance(),lc=Math.max(0,...[...zi('alerte'),...zi('avis')].map(a=>a.ts)),age=lc?Math.floor((Date.now()-lc)/DAY):null;
+  const warn=(age===null||age>=3)?` <span class="err">· ⚠ CERT-FR non actualisé${age===null?'':' depuis '+age+' j'} : niveau potentiellement sous-estimé</span>`:'';
+  $('#vig').style.setProperty('--lvl',v.col);
+  $('#vig').innerHTML=`<div><div class="sub">Niveau de vigilance France (indicatif, calculé sur 7 jours)</div><h1>${v.name}</h1></div><div class="seg">${[0,1,2,3].map(i=>`<i class="${i<=v.lv?'on':''}"></i>`).join('')}</div>
+  <div class="sub">${v.al} alerte(s) CERT-FR · ${v.kv} ajout(s) CISA KEV dont ${v.kw} sur ton périmètre · ${v.lk} fuite(s) FR urgente(s) · ${v.cw} nouveau(x) CVE critique(s) sur ton périmètre${warn}</div>`;
+}
+function kpis(){
+  const v=vigilance(),c=S.cve,fb=since(zi('leak'),30),un=S.items.filter(a=>a.sev==='URGENT'&&!S.read.has(a.id)&&a.z!=='int').length;
+  let cveK='',ratio='';
+  if(c){const y=c.dc[c.dc.length-2],m=c.mc,last=m[m.length-2],prev=m[0];ratio=prev?`×${(last/prev).toFixed(1)}`:'';
+    cveK=`<div class="k"><b>${(S.gh?S.gh.n24:y).toLocaleString('fr-FR')}</b><span>${S.gh?'Nouveaux CVE (24 h)':'CVE publiés hier'}</span></div><div class="k ${last/prev>2?'warm':''}"><b>${ratio}</b><span>CVE du mois dernier vs même mois N-1</span></div>`}
+  $('#kpis').innerHTML=`<div class="k ${v.al?'hot':''}"><b>${v.al}</b><span>Alertes CERT-FR (7 j)</span></div><div class="k"><b>${since(zi('avis'),7).length}</b><span>Avis CERT-FR (7 j)</span></div>
+  <div class="k ${v.kw?'warm':''}"><b>${v.kv}</b><span>Ajouts KEV (7 j), ${v.kw} sur ton périmètre</span></div><div class="k"><b>${fb.length}</b><span>Fuites France (30 j)</span></div>${cveK}
+  <div class="k ${un?'hot':''}"><b>${un}</b><span>Urgents FR non lus</span></div>`;
+}
+function panels(){
+  $('#p-cert').innerHTML=`<h2>Alertes et avis CERT-FR<small>${zi('alerte').length+zi('avis').length} en cache</small></h2>`+ferr(['alerte','avis'])+rows([...zi('alerte'),...zi('avis')].sort((a,b)=>b.ts-a.ts),25);
+  $('#p-leak').innerHTML=`<h2>Fuites de données en France<small>FrenchBreaches</small></h2>`+ferr(['leak'])+rows(zi('leak'),25,a=>(a.rel?` · ${a.rel==='confirmed'?'✔ confirmé':'crédible'}`:'')+(a.vol>=1000?` · ≈ ${a.vol.toLocaleString('fr-FR')}`:''));
+  const k=S.kev,wr=watchRe();
+  $('#p-kev').innerHTML=`<h2>Vulnérabilités exploitées (CISA KEV)<small>${k?k.total+' au catalogue':''}</small></h2>
+  <input id="watch" value="${esc(S.watch)}" aria-label="Éditeurs surveillés" placeholder="Éditeurs surveillés, séparés par des virgules" style="width:100%;margin-bottom:6px">
+  ${S.kerr?`<div class="err">${esc(S.kerr)}</div>`:''}`+(k?'<div class="list">'+k.v.slice(0,30).map(x=>`<div class="row"><span class="sv ${kevHit(x)?'u':'i'}">${kevHit(x)?'PÉRIMÈTRE':'KEV'}</span><a href="https://nvd.nist.gov/vuln/detail/${esc(x.id)}" target="_blank" rel="noopener noreferrer">${esc(x.id)} · ${esc(x.v)} ${esc(x.p)}</a><div class="meta">${esc(x.n)}<br>ajouté ${esc(x.d)} · échéance ${esc(x.due)} ${x.r?'<span class="tag w">ransomware</span>':''}</div></div>`).join('')+'</div>':'<div class="empty">Chargement…</div>');
+  const g=S.gh,L=recs().filter(x=>!S.ghf||recHit(x)||x.s>=7||x.e==='active');
+  const chip=x=>x.s>=9?['u','CVSS '+x.s]:x.s>=7?['h','CVSS '+x.s]:x.s>0?['m','CVSS '+x.s]:['i','non noté'];
+  $('#p-new').innerHTML=`<h2>Nouveaux CVE<small>dépôt CVEProject/cvelistV5${g?' · '+g.n24+' en 24 h, '+g.n48+' en 48 h':''}</small></h2>`+(S.gerr?`<div class="err">${esc(S.gerr)}</div>`:'')+
+   (g?`<div class="meta" style="color:var(--m);font-size:12px">Publications par heure sur 48 h</div>${bars(g.hours,g.hours.map((_,i)=>'il y a '+(47-i)+' h'),47,50)}
+   <label style="font-size:12px;color:var(--m)"><input type="checkbox" data-a="ghf" ${S.ghf?'checked':''}> Seulement périmètre, CVSS ≥ 7 ou exploitation active (${L.length} sur ${Object.keys(S.rec).length} détaillés)</label>
+   <div class="list">`+(L.slice(0,30).map(x=>{const c=chip(x);return `<div class="row"><span class="sv ${c[0]}">${c[1]}</span><a href="https://www.cve.org/CVERecord?id=${esc(x.id)}" target="_blank" rel="noopener noreferrer">${esc(x.id)} · ${esc(x.v)} ${esc(x.p)}</a><div class="meta">${esc(x.t)} · ${fmt(x.ts)} ${recHit(x)?'<span class="tag w">périmètre</span>':''} ${x.e==='active'?'<span class="tag w">exploité</span>':''}</div></div>`}).join('')||'<div class="empty">Rien ne correspond au filtre.</div>')+'</div>':'<div class="empty">Chargement…</div>');
+  const c=S.cve,gd=S.gh?.days||[],mt='style="color:var(--m);font-size:12px"';
+  $('#p-cve').innerHTML=`<h2>Volume de CVE publiés<small>${g?'dépôt cvelistV5':''}</small></h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
+   <div><div class="meta" ${mt}>Par jour, 7 derniers jours (le jour en cours est partiel)</div>${gd.length?bars(gd.map(x=>x[1]),gd.map(x=>x[0]),gd.length-1,70)+`<div class="meta" ${mt}>${gd.map(x=>esc(x[0])+' : '+x[1]).join(' · ')}</div>`:'<div class="empty">Chargement…</div>'}</div>
+   <div><div class="meta" ${mt}>13 derniers mois</div>${c?bars(c.mc.slice(1),c.m.slice(1),12):'<div class="empty">Historique mensuel indisponible depuis ce réseau (il exige un proxy public).</div>'}</div></div>`;
+  $('#p-map').innerHTML=`<h2>Cartes de menaces en direct</h2><div class="maps">${MAPS.map(([n,u])=>`<button data-a="map" data-u="${u}" class="${S.map===u?'on':''}">${n}</button>`).join('')}</div>
+  <iframe id="frame" title="Carte de menaces" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer" loading="lazy"></iframe>
+  <div class="empty" id="fh">Choisis une carte pour l’afficher ici. Si elle reste vide, le site refuse l’intégration : <a href="#" data-a="out">ouvre-la dans un onglet</a>.</div>`;
+  if(S.map){const f=$('#frame');f.src=S.map;f.style.display='block';$('#fh').innerHTML=`<a href="${esc(S.map)}" target="_blank" rel="noopener noreferrer">Ouvrir dans un onglet</a> si la carte reste vide (intégration refusée par le site).`}
+  renderFeed();stats();
+}
+const TYPES=[['Ransomware',/ransomware|rançongiciel|lockbit|extorsion/i],['Fuite de données',/fuite|breach|leak|données? (?:personnelles|volées)|exfiltr/i],['Phishing, arnaque',/phishing|hameçonnage|arnaque|smishing|usurpation|escroquerie/i],['Vulnérabilité',/vulnérab|vulnerab|cve-\d|zero-?day|0-?day|exploit|\brce\b|correctif|patch/i],['DDoS',/ddos|déni de service/i],['Malware, botnet',/malware|botnet|trojan|stealer|backdoor|logiciel malveillant/i]];
+const hb=(rows,w)=>{const m=Math.max(...rows.map(r=>r[1]),1);return rows.map(r=>`<div class="hb"><span>${esc(r[0])}</span><i class="${w&&w(r)?'w':''}" style="width:${Math.max(r[1]/m*100,2)}%"></i><span>${r[1]}</span></div>`).join('')};
+function stats(){
+  let it=since(S.items.filter(a=>a.z!=='int'),7),lab='FR';if(!it.length){it=since(S.items,7);lab='toutes zones'}
+  const tc=TYPES.map(([n,re])=>[n,it.filter(a=>re.test(a.title+' '+a.sum)).length]).sort((a,b)=>b[1]-a[1]);
+  const vc={};(S.kev?.v||[]).filter(x=>Date.now()-Date.parse(x.d)<30*DAY).forEach(x=>vc[x.v]=(vc[x.v]||0)+1);
+  const vr=Object.entries(vc).sort((a,b)=>b[1]-a[1]).slice(0,7);
+  $('#p-stats').innerHTML=`<h2>Types de menaces<small>${it.length} dépêches (${lab}), 7 j</small></h2>${it.length?hb(tc):'<div class="empty">Pas encore de données.</div>'}
+  <h2 style="margin-top:14px">Éditeurs les plus touchés<small>CISA KEV, 30 j</small></h2>${vr.length?hb(vr,r=>kevHit({v:r[0],p:''})):'<div class="empty">Pas encore de données.</div>'}`;
+}
+function renderFeed(){
+  if(!$('#fl')){$('#p-feed').innerHTML=`<h2>Fil des dépêches<small id="fc"></small></h2><div class="ctl"><input id="fq" type="search" placeholder="Rechercher…" aria-label="Rechercher"><select id="fz" aria-label="Zone"><option value="all">Toutes zones</option><option value="fr">France</option><option value="int">International</option></select><select id="fs" aria-label="Source"></select><label style="font-size:12px;color:var(--m);display:flex;gap:4px;align-items:center"><input type="checkbox" id="fu"> Non lus</label></div><div id="fl"></div>`}
+  const srcs=[...new Set(S.items.map(a=>a.src))].sort(),fs=$('#fs'),cur=S.fsrc||'';
+  fs.innerHTML='<option value="">Toutes sources</option>'+srcs.map(x=>`<option ${x===cur?'selected':''}>${esc(x)}</option>`).join('');
+  const q=($('#fq').value||'').toLowerCase(),z=$('#fz').value,un=$('#fu').checked;
+  const L=S.items.filter(a=>(z==='all'||(z==='int')===(a.z==='int'))&&(!cur||a.src===cur)&&(!q||(a.title+' '+a.sum+' '+a.src).toLowerCase().includes(q))&&(!un||!S.read.has(a.id)));
+  $('#fc').textContent=`${L.length} dépêches · ${S.feeds.filter(f=>f.on!==false).length} sources`;
+  $('#fl').innerHTML=rows(L,60);
+}
+function hdr(){
+  const ko=S.feeds.filter(f=>f.on!==false&&S.st[f.id]&&!S.st[f.id].ok).length,sa=S.srv?Math.round((Date.now()-S.srv.at)/6e4):null;
+  $('#st').innerHTML=(S.loading?'<span class="pulse">Actualisation…</span>':`Synchro ${S.last?new Date(S.last).toLocaleTimeString('fr-FR',{timeStyle:'short'}):'–'} · <span id="tm"></span>`)+(sa!==null?` · <span class="${sa>120?'err':'good'}">données serveur : ${new Date(S.srv.at).toLocaleTimeString('fr-FR',{timeStyle:'short'})}</span>`:` · <span class="err" title="${esc(S.serr||'')}">mode direct (serveur indisponible)</span>`)+(ko?` · <button class="err" data-a="feeds">${ko} flux en erreur</button>`:'');
+}
+const tick=()=>{$('#clock').textContent=new Date().toLocaleTimeString('fr-FR',{timeZone:'Europe/Paris'})+' Paris';const t=$('#tm');if(t)t.textContent='MAJ dans '+String(Math.floor(S.timer/60)).padStart(2,'0')+':'+String(S.timer%60).padStart(2,'0')};
 
-<script src="app.js"></script>
+/* ---- Modale Flux ---- */
+const modal=h=>{$('#modal').innerHTML=h;$('#modal').classList.add('on')},closeModal=()=>{$('#modal').classList.remove('on');$('#modal').innerHTML=''};
+function feedsModal(){
+  modal(`<div class="box"><h2>Flux RSS / Atom</h2><div class="f"><input id="nn" placeholder="Nom"><input id="nu" type="url" placeholder="https://…/feed.xml"><select id="nl"><option>FR</option><option>EN</option></select><button data-a="add">Ajouter</button></div>`+
+  S.feeds.map(f=>{const s=S.st[f.id];return `<div class="fl" data-fid="${esc(f.id)}"><input type="checkbox" data-a="on" ${f.on!==false?'checked':''} aria-label="Activer"><div><b>${esc(f.name)}</b> <span class="tag">${esc(f.lang)}</span><small>${esc(f.url)}</small><small class="${s?(s.ok?'good':'err'):''}">${s?(s.ok?s.n+' articles ('+s.via+')':esc(s.err)):'pas encore chargé'}</small></div><button data-a="del">Supprimer</button></div>`}).join('')+
+  `<div class="foot"><button data-a="defaults">Rétablir les flux par défaut</button><button data-a="close">Fermer</button></div></div>`);
+}
+const TESTS=[['Données serveur (branche data)','@BASE'],['GitHub raw (CVE et miroir KEV)',GH+'delta.json'],['cve.0xosprey.com (historique)',CVE],['Proxy codetabs','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fexample.com'],['Proxy corsproxy','https://corsproxy.io/?https%3A%2F%2Fexample.com'],['Proxy allorigins','https://api.allorigins.win/raw?url=https%3A%2F%2Fexample.com']];
+async function netTest(){
+  modal(`<div class="box"><h2>Test réseau</h2><div class="f"><input id="bu" value="${esc(S.base)}" aria-label="URL des données serveur"><button data-a="savebase">Enregistrer l’URL</button></div><div id="nt">Test en cours…</div><div class="foot"><span></span><button data-a="close">Fermer</button></div></div>`);
+  const out=await Promise.all(TESTS.map(async([n,u0])=>{
+    const u=u0==='@BASE'?S.base+'meta.json':u0;const ac=new AbortController(),t0=performance.now(),to=setTimeout(()=>ac.abort(),12000);let r;
+    try{const x=await fetch(u,{signal:ac.signal});ac.abort();r=x.ok?`<span class="good">OK · ${Math.round(performance.now()-t0)} ms</span>`:`<span class="err">HTTP ${x.status}</span>`}
+    catch(e){r=`<span class="err">${e.name==='AbortError'?'délai dépassé':'bloqué (proxy, pare-feu ou CORS)'}</span>`}
+    finally{clearTimeout(to)}
+    return `<div class="fl"><div><b>${esc(n)}</b><small>${esc(new URL(u).hostname)}</small></div>${r}</div>`;
+  }));
+  $('#nt').innerHTML=out.join('')+'<p style="color:var(--m);font-size:12px">Si GitHub raw est bloqué, les panneaux « Nouveaux CVE » et le miroir KEV échouent : à faire autoriser sur le proxy (raw.githubusercontent.com). cve.0xosprey.com peut échouer sans CORS, alors seuls les proxys le servent.</p>';
+}
+function exportCSV(){
+  const c=v=>{v=String(v??'');if(/^[=+\-@\t\r]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
+  const rows=S.items.map(a=>[a.title,a.src,a.z,a.sev,a.rel,fmt(a.ts),a.link]);
+  const blob=new Blob(['\ufeffTitre;Source;Zone;Sévérité;Fiabilité;Date;Lien\n'+rows.map(r=>r.map(c).join(';')).join('\n')],{type:'text/csv;charset=utf-8'});
+  const l=document.createElement('a');l.href=URL.createObjectURL(blob);l.download='veille-cyber-'+new Date().toISOString().slice(0,10)+'.csv';document.body.append(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(l.href),1000);
+}
 
+/* ---- Événements ---- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b){if(e.target.id==='modal')closeModal();return}
+  const a=b.dataset.a,fid=b.closest('[data-fid]')?.dataset.fid;
+  if(a==='open'){S.read.add(b.dataset.id);saveRead();b.closest('.row').classList.add('rd');kpis();return}
+  if(a==='on'||a==='ghf')return;
+  if(a==='ghf')return;
+  e.preventDefault&&a!=='open'&&['refresh','map','out','feeds','csv','close','del','defaults','add','savebase','net'].includes(a)&&e.preventDefault();
+  switch(a){
+    case 'refresh':refresh();break;
+    case 'ghf':S.ghf=b.checked;store.set('cv_ghf',S.ghf);panels();break;
+    case 'map':S.map=S.map===b.dataset.u?'':b.dataset.u;panels();break;
+    case 'out':window.open(MAPS[0][1],'_blank','noopener');break;
+    case 'feeds':feedsModal();break;case 'csv':exportCSV();break;case 'net':netTest();break;
+    case 'savebase':{let u=$('#bu').value.trim();if(!/^https:\/\//.test(u))return;if(!u.endsWith('/'))u+='/';S.base=u;store.set('cv_base',u);closeModal();refresh();break}case 'close':closeModal();break;
+    case 'del':S.feeds=S.feeds.filter(f=>f.id!==fid);saveFeeds();feedsModal();render();break;
+    case 'defaults':S.feeds=DEF.slice();saveFeeds();feedsModal();refresh();break;
+    case 'add':{const name=$('#nn').value.trim(),url=$('#nu').value.trim();if(!name||!/^https?:\/\//i.test(url))return;S.feeds.push({id:'u'+Date.now(),name,url,cat:'Actu Cyber',lang:$('#nl').value});saveFeeds();feedsModal();refresh()}
+  }
+});
+document.addEventListener('change',e=>{
+  const b=e.target.closest('[data-a]');
+  if(b&&b.dataset.a==='on'){const f=S.feeds.find(x=>x.id===b.closest('[data-fid]').dataset.fid);f.on=b.checked;saveFeeds();refresh()}
+  else if(b&&b.dataset.a==='ghf'){S.ghf=b.checked;store.set('cv_ghf',S.ghf);panels()}
+  else if(e.target.id==='fs'){S.fsrc=e.target.value;renderFeed()}
+  else if(e.target.id==='fz'||e.target.id==='fu')renderFeed()
+  else if(e.target.id==='watch'){S.watch=e.target.value;store.set('cv_watch',S.watch);render()}
+});
+document.addEventListener('input',e=>{if(e.target.id==='fq')renderFeed()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+setInterval(()=>{if(!S.loading&&--S.timer<=0)refresh();tick()},1000);
+render();tick();refresh();
+</script>
 </body>
 </html>
