@@ -34,7 +34,7 @@ FEEDS = [  # mêmes id que le dashboard ; modifie cette liste pour ajouter des f
     dict(id="isc", name="SANS ISC", url="https://isc.sans.edu/rssfeed_full.xml", lang="EN"),
 ]
 STATUS = [  # météo Cloud & SaaS : flux publics d'état de service
-    dict(id="m365", name="Microsoft 365", url="https://status.cloud.microsoft/", kind="rss", feed="https://status.cloud.microsoft/api/feed/mac"),
+    dict(id="m365", name="Microsoft 365", url="https://status.cloud.microsoft/", kind="m365", feed="https://status.cloud.microsoft/api/feed/mac"),
     dict(id="azure", name="Azure", url="https://azure.status.microsoft/en-us/status", kind="rss_active", feed="https://rssfeed.azure.status.microsoft/en-us/status/feed/"),
     dict(id="aws", name="AWS", url="https://health.aws.amazon.com/health/status", kind="rss", feed="https://status.aws.amazon.com/rss/all.rss"),
     dict(id="cloudflare", name="Cloudflare", url="https://www.cloudflarestatus.com/", kind="statuspage", feed="https://www.cloudflarestatus.com/api/v2/summary.json"),
@@ -259,14 +259,15 @@ def build_history():
                 m=j["months"][-14:], mc=j["counts"][-14:], via="serveur")
 
 
+M365_DONE = re.compile(r"resolved|restored|mitigated|final status|root cause|no longer|operating normally|résolu", re.I)
 RESOLVED = re.compile(r"resolved|restored|operating normally|completed|résolu", re.I)
 
 
-def rss_events(xml):
+def rss_events(xml, size=160):
     out = []
     for n in ET.fromstring(xml).iter():
         if n.tag.split("}")[-1] in ("item", "entry"):
-            out.append(dict(t=plain(tx(n, "title")), d=plain(tx(n, "description", "summary", "content"), 160),
+            out.append(dict(t=plain(tx(n, "title")), d=plain(tx(n, "description", "summary", "content"), size),
                             ts=ms(tx(n, "pubDate", "published", "updated"))))
     return out
 
@@ -281,14 +282,24 @@ def check_service(s):
             state = {"none": "ok", "minor": "deg", "major": "out", "critical": "out"}.get(st.get("indicator", ""), "unknown")
             inc = [i.get("name", "") for i in j.get("incidents", [])]
             return dict(base, state=state, note=(inc[0] if inc else st.get("description", ""))[:140], n=len(inc))
-        ev = rss_events(raw)
         now = time.time() * 1000
+        if s["kind"] == "m365":
+            # Flux « Microsoft Admin Center Status » : tous les titres sont identiques et un message permanent
+            # (« This site is updated when service issues… ») est republié en permanence : on l'écarte, puis on ne retient
+            # qu'une mise à jour d'incident de moins de 6 h, sans mention de résolution / atténuation.
+            ev = [e for e in rss_events(raw, 600) if e["ts"] and not e["d"].lower().startswith("this site is updated")]
+            recent = [e for e in ev if now - e["ts"] < 6 * 3600 * 1000]
+            if recent and not any(M365_DONE.search(e["d"]) for e in recent):
+                return dict(base, state="deg", note=recent[0]["d"][:140], n=len(recent))
+            return dict(base, state="ok", note="Aucun incident public en cours (centre d'administration)", n=0)
+        ev = rss_events(raw)
         act = ev if s["kind"] == "rss_active" else [e for e in ev if e["ts"] and now - e["ts"] < 12 * 3600 * 1000 and not RESOLVED.search(e["t"] + " " + e["d"])]
         return dict(base, state="deg" if act else "ok", note=(act[0]["t"] if act else "Aucun incident en cours")[:140], n=len(act))
     except Exception as e:
         return dict(base, state="unknown", note=(s.get("hint") or "source indisponible : " + str(e))[:140], n=0)
 
 
+RESET_BEFORE = {"m365": 1795005084562}  # relevés antérieurs écartés (faux positif corrigé)
 STATE_CODE = {"ok": 0, "deg": 1, "out": 2, "unknown": 3}
 
 
@@ -299,7 +310,7 @@ def build_status():
         res = list(ex.map(check_service, STATUS))
     now = int(time.time() * 1000)
     for r in res:
-        h = [x for x in old.get(r["id"], []) if now - x[0] < 7 * 86400000]
+        h = [x for x in old.get(r["id"], []) if now - x[0] < 7 * 86400000 and x[0] >= RESET_BEFORE.get(r["id"], 0)]
         if h and now - h[-1][0] < 300000:  # deux exécutions rapprochées : on remplace le dernier relevé
             h.pop()
         h.append([now, STATE_CODE.get(r["state"], 3)])
