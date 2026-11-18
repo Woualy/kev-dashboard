@@ -11,6 +11,9 @@ Le dashboard (`index.html`) les lit sur `raw.githubusercontent.com`, sans proxy 
 4. Ouvre `index.html` en local. Le bouton « Réseau » teste l'accès aux données ; l'URL de base se règle dans la même fenêtre
    (par défaut `https://raw.githubusercontent.com/Woualy/kev-dashboard/data/`).
 
+## Fichiers produits par l'Action
+`feeds.json` (flux RSS), `kev.json`, `cve.json` (nouveaux CVE + score EPSS), `history.json`, `status.json` (météo Cloud & SaaS), `ransom.json` (revendications FR), `meta.json`.
+
 ## Bon à savoir
 - Les flux sont définis en haut de `scripts/build_data.py` (liste `FEEDS`, mêmes id que le dashboard). Le bouton « Flux » du dashboard ne sert plus qu'au mode direct de secours.
 - Un flux qui échoue côté serveur garde son ancien contenu ; l'erreur apparaît dans `meta.json` et dans la fenêtre « Flux ».
