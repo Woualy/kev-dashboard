@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="dark">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src https:; img-src data:; frame-src https://threatmap.checkpoint.com https://threatmap.bitdefender.com https://livethreatmap.radware.com https://talosintelligence.com">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src https:; img-src data:">
 <title>Cyber mission control · France</title>
 <style>
 :root{--bg:#0c141d;--p:#131f2c;--p2:#1a2938;--b:#27394d;--t:#dbe4ee;--m:#8aa0b8;--a:#5bb0d6;--u:#f0605d;--h:#f29a4b;--md:#e8c85a;--i:#6fa8dc;--ok:#4cc38a;--lvl:#4cc38a}
@@ -28,7 +28,17 @@ header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 18px
 .seg{display:flex;gap:4px}.seg i{width:34px;height:8px;border-radius:2px;background:var(--b)}.seg i.on{background:var(--lvl)}
 main{padding:16px 18px;display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr));margin:0 auto}
 @media(max-width:1000px){main{grid-template-columns:1fr 1fr}}@media(max-width:650px){main{grid-template-columns:1fr}}
-@media(min-width:2300px){body{font-size:15px}main{grid-template-columns:repeat(12,minmax(0,1fr))}#p-cert,#p-leak,#p-kev,#p-new{grid-column:span 3}#p-feed{grid-column:span 5}#p-stats,#p-cve{grid-column:span 2}#p-map{grid-column:span 3;order:2}.list{max-height:320px}#frame{height:340px}.k b{font-size:30px}}
+@media(min-width:2300px){body{font-size:15px}main{grid-template-columns:repeat(12,minmax(0,1fr))}#p-cert,#p-leak,#p-kev,#p-new{grid-column:span 3}#p-feed{grid-column:span 4}#p-stats,#p-cve,#p-ransom,#p-cloud{grid-column:span 2}#p-cloud{order:2}.list{max-height:320px}.k b{font-size:30px}}
+@media(min-width:2300px) and (min-height:1000px){ /* tout tient dans la fenêtre, les listes défilent dans leur panneau */
+body{height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header,#vig{flex:none}
+main{flex:1;min-height:0;grid-template-rows:auto minmax(0,1fr) minmax(0,1fr);padding:12px 18px;gap:12px}
+section{display:flex;flex-direction:column;overflow:hidden;min-height:0}
+section>*{flex:none}
+section .list{flex:1 1 0;min-height:0;max-height:none}
+#fl{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+#fl>.list{flex:1 1 0}
+}
 .kpis{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .k{background:var(--p);border:1px solid var(--b);border-radius:8px;padding:10px 12px}
 .k b{display:block;font-size:26px;line-height:1.1}.k span{color:var(--m);font-size:12px}
@@ -56,7 +66,10 @@ svg{width:100%;height:auto;display:block}
 .bar{fill:var(--a)}.bar.cur{fill:var(--a);opacity:.4}
 .maps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 .maps button.on{background:var(--a);color:#06121c;border-color:var(--a)}
-#frame{width:100%;height:340px;border:1px solid var(--b);border-radius:6px;background:#000;display:none}
+.cc{display:flex;gap:4px;flex-wrap:wrap}.chk{font-size:12px;color:var(--m);display:flex;gap:6px;align-items:center;margin:0 0 6px}
+.cl{display:grid;grid-template-columns:14px 1fr auto;gap:2px 8px;align-items:center;padding:8px 0;border-top:1px solid var(--b)}.cl:first-of-type{border-top:0}.cl a{font-weight:600;text-decoration:none}.cl a:hover{color:var(--a)}.cl .meta{grid-column:2/-1;color:var(--m);font-size:12px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--m)}.dot.ok{background:var(--ok)}.dot.deg{background:var(--h)}.dot.out{background:var(--u)}
+#iocw{position:relative}#ioc{width:270px}#iocr{display:none;position:absolute;right:0;top:34px;z-index:8;background:var(--p);border:1px solid var(--b);border-radius:8px;padding:10px 12px;width:380px;box-shadow:0 8px 24px #0008}#iocr.on{display:block}#iocr a.tag{text-decoration:none;color:#9cc7e0;padding:3px 8px;font-size:12px}#iocr a.tag:hover{border-color:var(--a)}
 #modal{display:none;position:fixed;inset:0;z-index:9;background:#000b;padding:16px;overflow:auto}#modal.on{display:block}
 .box{background:var(--p);border:1px solid var(--b);border-radius:10px;max-width:720px;margin:20px auto;padding:16px}
 .fl{display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--b);font-size:13px}.fl div{flex:1;min-width:0}.fl small{display:block;color:var(--m);overflow-wrap:anywhere}
@@ -67,18 +80,18 @@ svg{width:100%;height:auto;display:block}
 </head>
 <body>
 <header>
-  <div class="brand">Cyber mission control<small>Veille France · actualisation automatique toutes les 30 min · build 17/11-d</small></div>
-  <div id="clock"></div><div id="st"></div>
+  <div class="brand">Cyber mission control<small>Veille France · actualisation automatique toutes les 30 min · build 17/11-h</small></div>
+  <div id="iocw"><input id="ioc" type="search" placeholder="IOC : IP, domaine, hash, URL, CVE   ( / )" aria-label="Rechercher un indicateur" autocomplete="off"><div id="iocr"></div></div><div id="clock"></div><div id="st"></div>
   <button data-a="refresh" title="Actualiser maintenant" aria-label="Actualiser">⟳</button>
-  <button data-a="net">Réseau</button><button data-a="feeds">Flux</button><button data-a="csv">Export CSV</button>
+  <button data-a="readall" title="Marquer toutes les dépêches comme lues">Tout lu</button><button data-a="net">Réseau</button><button data-a="feeds">Flux</button><button data-a="csv">Export CSV</button>
 </header>
 <div id="vig"></div>
 <main>
   <div class="kpis" id="kpis"></div>
   <section id="p-cert"></section><section id="p-leak"></section><section id="p-kev"></section>
-  <section id="p-new" class="w2"></section><section id="p-map"></section>
+  <section id="p-new" class="w2"></section><section id="p-cloud"></section>
   <section id="p-feed" class="w2"></section><section id="p-stats"></section>
-  <section id="p-cve" class="w3"></section>
+  <section id="p-ransom"></section><section id="p-cve" class="w2"></section>
 </main>
 <div id="modal"></div>
 <script>
@@ -90,7 +103,6 @@ try{localStorage.removeItem('cv_leakix_key');localStorage.removeItem('cv_leakix_
 const DAY=864e5,fmt=ts=>ts?new Date(ts).toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'}):'date inconnue';
 const KEVM='https://raw.githubusercontent.com/cisagov/kev-data/develop/known_exploited_vulnerabilities.json',KEV='https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json',CVE='https://cve.0xosprey.com/data.json';
 const GH='https://raw.githubusercontent.com/CVEProject/cvelistV5/main/cves/';
-const MAPS=[['Check Point','https://threatmap.checkpoint.com/'],['Bitdefender','https://threatmap.bitdefender.com/'],['Radware','https://livethreatmap.radware.com/'],['Talos spam','https://talosintelligence.com/ebc_spam']];
 
 /* ---- Flux ---- */
 const DEF=[
@@ -99,14 +111,19 @@ const DEF=[
  {id:'2',name:'CERT-FR – Avis',url:'https://www.cert.ssi.gouv.fr/avis/feed/',cat:'Vulnérabilités',lang:'FR'},
  {id:'3',name:'Zataz',url:'https://www.zataz.com/feed/',cat:'Actu Cyber',lang:'FR'},
  {id:'8',name:'Cybermalveillance.gouv.fr',url:'https://www.cybermalveillance.gouv.fr/feed/atom-flux-complet',cat:'Actu Cyber',lang:'FR'},
- {id:'6',name:'CISA Advisories',url:'https://www.cisa.gov/cybersecurity-advisories/all.xml',cat:'Vulnérabilités',lang:'EN'},
- {id:'7',name:'BleepingComputer',url:'https://www.bleepingcomputer.com/feed/',cat:'Actu Cyber',lang:'EN'}];
-const zone=f=>/cert\.ssi\.gouv/.test(f.url)?(/alerte/.test(f.url)?'alerte':'avis'):/frenchbreaches/.test(f.url)?'leak':f.lang==='FR'?'fr':'int';
-function loadFeeds(){let f=store.get('cv_feeds',null)||DEF.slice();if(!f.some(x=>/frenchbreaches/.test(x.url)))f.unshift(DEF[0]);return f}
+ {id:'6',name:'The Hacker News',url:'https://feeds.feedburner.com/TheHackersNews',cat:'Actu Cyber',lang:'EN'},
+ {id:'7',name:'BleepingComputer',url:'https://www.bleepingcomputer.com/feed/',cat:'Actu Cyber',lang:'EN'},
+ {id:'cti',name:'CERT-FR – CTI',url:'https://www.cert.ssi.gouv.fr/cti/feed/',cat:'Vulnérabilités',lang:'FR'},
+ {id:'act',name:'CERT-FR – Actualités',url:'https://www.cert.ssi.gouv.fr/actualite/feed/',cat:'Actu Cyber',lang:'FR'},
+ {id:'enisa',name:'ENISA',url:'https://www.enisa.europa.eu/rss.xml',cat:'Actu Cyber',lang:'EN'},
+ {id:'cnil',name:'CNIL',url:'https://www.cnil.fr/fr/rss.xml',cat:'Actu Cyber',lang:'FR'},
+ {id:'isc',name:'SANS ISC',url:'https://isc.sans.edu/rssfeed_full.xml',cat:'Actu Cyber',lang:'EN'}];
+const zone=f=>/cert\.ssi\.gouv/.test(f.url)?(/alerte/.test(f.url)?'alerte':/\/cti/.test(f.url)?'cti':/\/actualite/.test(f.url)?'fr':'avis'):/frenchbreaches/.test(f.url)?'leak':f.lang==='FR'?'fr':'int';
+function loadFeeds(){let f=store.get('cv_feeds',null)||DEF.slice();f=f.map(x=>/cisa\.gov\/cybersecurity-advisories/.test(x.url)?DEF.find(d=>d.id==='6'):x);if(!f.some(x=>/frenchbreaches/.test(x.url)))f.unshift(DEF[0]);const del=new Set(store.get('cv_del',[])),have=new Set(f.map(x=>x.id));if(store.get('cv_mig',0)<1){['cti','act','enisa','cnil','isc'].forEach(id=>{if(!have.has(id)&&!del.has(id))f.push(DEF.find(d=>d.id===id))});store.set('cv_feeds',f);store.set('cv_mig',1)}return f}
 const S={feeds:loadFeeds(),items:store.get('cv_cache',[]),st:{},read:new Set(store.get('cv_read',[])),kev:store.get('cv_kev',null),cve:store.get('cv_cve',null),
  watch:store.get('cv_watch','Microsoft, Fortinet, Citrix, Cisco, Ivanti, VMware, Palo Alto, Veeam'),gh:store.get('cv_gh',null),rec:store.get('cv_rec',{}),ghf:store.get('cv_ghf',true),gerr:'',kerr:'',cerr:'',map:'',loading:false,last:store.get('cv_last',0),timer:1800};
 S.items.forEach(a=>{if(!a.z){const f=S.feeds.find(x=>x.id===a.fid);a.z=f?zone(f):'int'}}); // anciens caches sans zone
-S.fail={};S.base=store.get('cv_base','https://raw.githubusercontent.com/Woualy/kev-dashboard/data/');S.srv=null;
+S.fail={};S.base=store.get('cv_base','https://raw.githubusercontent.com/Woualy/kev-dashboard/data/');S.srv=null;S.cloud=store.get('cv_cl',null);S.ransom=store.get('cv_rs',null);S.wo=store.get('cv_wo',false);
 const saveFeeds=()=>store.set('cv_feeds',S.feeds),saveRead=()=>store.set('cv_read',[...S.read].slice(-3000));
 
 const ROUTES=[['direct',u=>u],['codetabs',u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u)],['corsproxy',u=>'https://corsproxy.io/?'+encodeURIComponent(u)],['allorigins',u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)]];
@@ -192,16 +209,26 @@ async function loadCve(){
 async function loadServer(){ // données préparées par GitHub Actions (branche « data »)
   try{
     const g=async f=>{const r=await fetch(S.base+f+'?t='+Math.floor(Date.now()/3e5));if(!r.ok)throw Error(f+' : HTTP '+r.status);return r.json()};
-    const [m,fe,kv,cv,hi]=await Promise.all(['meta.json','feeds.json','kev.json','cve.json','history.json'].map(f=>g(f).catch(e=>f==='history.json'?null:Promise.reject(e))));
+    const opt=['history.json','status.json','ransom.json'];
+    const [m,fe,kv,cv,hi,sj,rj]=await Promise.all(['meta.json','feeds.json','kev.json','cve.json','history.json','status.json','ransom.json'].map(f=>g(f).catch(e=>opt.includes(f)?null:Promise.reject(e))));
     const on=new Set(S.feeds.filter(f=>f.on!==false).map(f=>f.id));
     S.items=fe.items.filter(a=>on.has(a.fid)).map(a=>{a.vol=a.z==='leak'?volume(a.title+' '+a.sum):0;a.sev=severity(a,a.z);return a}).sort((a,b)=>b.ts-a.ts).slice(0,500);
+    const sid=new Set(Object.keys(m.feeds||{})),loc=S.feeds.filter(f=>f.on!==false&&!sid.has(f.id)),old=store.get('cv_cache',[]);
     S.kev=kv;S.kerr='';S.gh=cv.gh;S.rec=cv.recs;S.gerr='';if(hi){S.cve=hi;S.cerr=''}
     Object.entries(m.feeds||{}).forEach(([id,x])=>{S.st[id]=x.ok?{ok:1,n:x.n,via:'serveur'}:{ok:0,err:x.err||'erreur côté serveur'}});
-    S.srv={at:Date.parse(m.generatedAt),parts:m.parts};
+    S.srv={at:Date.parse(m.generatedAt),parts:m.parts};if(sj){S.cloud=sj;store.set('cv_cl',sj)}if(rj){S.ransom=rj;store.set('cv_rs',rj)}
     store.set('cv_cache',S.items);store.set('cv_kev',S.kev);store.set('cv_gh',S.gh);store.set('cv_rec',S.rec);if(hi)store.set('cv_cve',hi);
+    if(loc.length)mergeLocal(loc,old); // flux ajoutés dans ce navigateur : chargés en arrière-plan puis fusionnés
     return true;
   }catch(e){S.srv=null;S.serr=e.message;return false}
 }
+async function mergeLocal(loc,old){
+  const lr=await pool(loc.map(f=>()=>fetchFeed(f)),3),seen=new Set(S.items.map(a=>a.link!=='#'?a.link:a.id));
+  lr.forEach((r,i)=>{let it;if(r.status==='fulfilled')it=r.value;else{S.st[loc[i].id]={ok:0,err:r.reason?.message||'Erreur'};it=old.filter(a=>a.fid===loc[i].id)}
+    it.forEach(a=>{const k=a.link!=='#'?a.link:a.id;if(!seen.has(k)){seen.add(k);S.items.push(a)}})});
+  S.items.sort((a,b)=>b.ts-a.ts);S.items=S.items.slice(0,500);store.set('cv_cache',S.items);render();
+}
+async function fetchFeed(f){const r=await getText(f.url,x=>!/<html[\s>]/i.test(x)&&/<(rss|feed|rdf:RDF)[\s>]/i.test(x),8000);const it=parseXML(r.t,f);S.st[f.id]={ok:1,n:it.length,via:r.via};return it}
 async function pool(tasks,n){
   const out=[];let i=0;
   await Promise.all(Array.from({length:n},async()=>{while(i<tasks.length){const k=i++;try{out[k]={status:'fulfilled',value:await tasks[k]()}}catch(e){out[k]={status:'rejected',reason:e}}}}));
@@ -213,7 +240,7 @@ async function refresh(){
   const heavy=Promise.all([loadKev(),loadGh()]).then(render); // GitHub raw : indépendant des proxys, lancé en parallèle
   const act=S.feeds.filter(f=>f.on!==false);
   // flux RSS d'abord, 3 à la fois (les proxys publics limitent les requêtes simultanées)
-  const res=await pool(act.map(f=>async()=>{const r=await getText(f.url,x=>!/<html[\s>]/i.test(x)&&/<(rss|feed|rdf:RDF)[\s>]/i.test(x),8000);const it=parseXML(r.t,f);S.st[f.id]={ok:1,n:it.length,via:r.via};return it}),4);
+  const res=await pool(act.map(f=>()=>fetchFeed(f)),4);
   const seen=new Set(),all=[],failed=new Set();
   const add=a=>{const k=a.link!=='#'?a.link:a.id;if(!seen.has(k)){seen.add(k);all.push(a)}};
   res.forEach((r,i)=>{if(r.status==='fulfilled')r.value.forEach(add);else{failed.add(act[i].id);S.st[act[i].id]={ok:0,err:r.reason?.message||'Erreur'}}});
@@ -231,7 +258,11 @@ const since=(arr,d,k='ts')=>arr.filter(a=>Date.now()-a[k]<d*DAY);
 const watchRe=()=>{const w=S.watch.split(/[,;]/).map(s=>s.trim()).filter(Boolean).map(s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));return w.length?new RegExp(w.join('|'),'i'):null};
 const kevRecent=d=>(S.kev?.v||[]).filter(x=>Date.now()-Date.parse(x.d)<d*DAY);
 const kevHit=x=>{const r=watchRe();return r&&r.test(x.v+' '+x.p)};
-const recs=()=>Object.values(S.rec).sort((a,b)=>(kevHit(b)-kevHit(a))||b.s-a.s||b.ts-a.ts);
+const itemHit=a=>{const r=watchRe();return !!r&&r.test(a.title+' '+a.sum)};
+const dueBadge=x=>{const d=Date.parse(x.due);if(isNaN(d))return '';const t=new Date();t.setHours(0,0,0,0);const n=Math.round((d-t.getTime())/DAY);
+  return n<0?` <span class="sv u" title="Échéance de correction CISA dépassée">ÉCHÉANCE DÉPASSÉE (${-n} j)</span>`:n<=7?` <span class="sv h">ÉCHÉANCE ${n===0?'AUJOURD’HUI':'J-'+n}</span>`:''};
+const n1=v=>Number(!!v);
+const recs=()=>Object.values(S.rec).sort((a,b)=>(n1(b.k)-n1(a.k))||(n1(recHit(b))-n1(recHit(a)))||((b.ep??-1)-(a.ep??-1))||b.s-a.s||b.ts-a.ts);
 const recHit=x=>{const r=watchRe();return r&&r.test(x.v+' '+x.p+' '+x.t)};
 function vigilance(){
   const al=since(zi('alerte'),7).length,kv=kevRecent(7),kw=kv.filter(kevHit).length,lk=since(zi('leak'),7).filter(a=>a.sev==='URGENT').length;
@@ -244,7 +275,7 @@ function vigilance(){
 /* ---- Rendu ---- */
 function rows(list,n,extra){
   if(!list.length)return '<div class="empty">Aucun élément pour le moment.</div>';
-  return '<div class="list">'+list.slice(0,n).map(a=>`<div class="row ${S.read.has(a.id)?'rd':''}"><span class="sv ${SEV[a.sev][0]}">${a.sev}</span><a href="${esc(a.link)}" target="_blank" rel="noopener noreferrer" data-a="open" data-id="${esc(a.id)}">${esc(a.title)}</a><div class="meta">${esc(a.src)} · ${fmt(a.ts)}${extra?extra(a):''}</div></div>`).join('')+'</div>';
+  return '<div class="list">'+list.slice(0,n).map(a=>`<div class="row ${S.read.has(a.id)?'rd':''}"><span class="sv ${SEV[a.sev][0]}">${a.sev}</span><a href="${esc(a.link)}" target="_blank" rel="noopener noreferrer" data-a="open" data-id="${esc(a.id)}">${esc(a.title)}</a><div class="meta">${esc(a.src)} · ${fmt(a.ts)}${extra?extra(a):''}${itemHit(a)?' <span class="tag w">PÉRIMÈTRE</span>':''}</div></div>`).join('')+'</div>';
 }
 function bars(vals,labels,cur,h=70){
   const w=300,mx=Math.max(...vals,1),bw=w/vals.length;
@@ -260,34 +291,36 @@ function vig(){
 }
 function kpis(){
   const v=vigilance(),c=S.cve,fb=since(zi('leak'),30),un=S.items.filter(a=>a.sev==='URGENT'&&!S.read.has(a.id)&&a.z!=='int').length;
+  const rs0=S.ransom,r7=rs0?since(rs0.items||[],7,'d').length:0;
   let cveK='',ratio='';
   if(c){const y=c.dc[c.dc.length-2],m=c.mc,last=m[m.length-2],prev=m[0];ratio=prev?`×${(last/prev).toFixed(1)}`:'';
     cveK=`<div class="k"><b>${(S.gh?S.gh.n24:y).toLocaleString('fr-FR')}</b><span>${S.gh?'Nouveaux CVE (24 h)':'CVE publiés hier'}</span></div><div class="k ${last/prev>2?'warm':''}"><b>${ratio}</b><span>CVE du mois dernier vs même mois N-1</span></div>`}
   $('#kpis').innerHTML=`<div class="k ${v.al?'hot':''}"><b>${v.al}</b><span>Alertes CERT-FR (7 j)</span></div><div class="k"><b>${since(zi('avis'),7).length}</b><span>Avis CERT-FR (7 j)</span></div>
   <div class="k ${v.kw?'warm':''}"><b>${v.kv}</b><span>Ajouts KEV (7 j), ${v.kw} sur ton périmètre</span></div><div class="k"><b>${fb.length}</b><span>Fuites France (30 j)</span></div>${cveK}
-  <div class="k ${un?'hot':''}"><b>${un}</b><span>Urgents FR non lus</span></div>`;
+  <div class="k ${r7?'warm':''}"><b>${rs0?r7:'–'}</b><span>Revendications ransomware FR (7 j)</span></div><div class="k ${un?'hot':''}"><b>${un}</b><span>Urgents FR non lus</span></div>`;
 }
 function panels(){
-  $('#p-cert').innerHTML=`<h2>Alertes et avis CERT-FR<small>${zi('alerte').length+zi('avis').length} en cache</small></h2>`+ferr(['alerte','avis'])+rows([...zi('alerte'),...zi('avis')].sort((a,b)=>b.ts-a.ts),25);
+  const cz=[...zi('alerte'),...zi('avis'),...zi('cti')].sort((a,b)=>b.ts-a.ts),cl=cz.filter(a=>!S.wo||itemHit(a));
+  $('#p-cert').innerHTML=`<h2>Alertes, avis et CTI CERT-FR<small>${cl.length}${S.wo?' sur '+cz.length:''} en cache</small></h2><label class="chk"><input type="checkbox" data-a="wo" ${S.wo?'checked':''}> Mon périmètre uniquement</label>`+ferr(['alerte','avis','cti'])+rows(cl,25);
   $('#p-leak').innerHTML=`<h2>Fuites de données en France<small>FrenchBreaches</small></h2>`+ferr(['leak'])+rows(zi('leak'),25,a=>(a.rel?` · ${a.rel==='confirmed'?'✔ confirmé':'crédible'}`:'')+(a.vol>=1000?` · ≈ ${a.vol.toLocaleString('fr-FR')}`:''));
   const k=S.kev,wr=watchRe();
   $('#p-kev').innerHTML=`<h2>Vulnérabilités exploitées (CISA KEV)<small>${k?k.total+' au catalogue':''}</small></h2>
   <input id="watch" value="${esc(S.watch)}" aria-label="Éditeurs surveillés" placeholder="Éditeurs surveillés, séparés par des virgules" style="width:100%;margin-bottom:6px">
-  ${S.kerr?`<div class="err">${esc(S.kerr)}</div>`:''}`+(k?'<div class="list">'+k.v.slice(0,30).map(x=>`<div class="row"><span class="sv ${kevHit(x)?'u':'i'}">${kevHit(x)?'PÉRIMÈTRE':'KEV'}</span><a href="https://nvd.nist.gov/vuln/detail/${esc(x.id)}" target="_blank" rel="noopener noreferrer">${esc(x.id)} · ${esc(x.v)} ${esc(x.p)}</a><div class="meta">${esc(x.n)}<br>ajouté ${esc(x.d)} · échéance ${esc(x.due)} ${x.r?'<span class="tag w">ransomware</span>':''}</div></div>`).join('')+'</div>':'<div class="empty">Chargement…</div>');
-  const g=S.gh,L=recs().filter(x=>!S.ghf||recHit(x)||x.s>=7||x.e==='active');
+  ${S.kerr?`<div class="err">${esc(S.kerr)}</div>`:''}`+(k?'<div class="list">'+k.v.slice(0,30).map(x=>`<div class="row"><span class="sv ${kevHit(x)?'u':'i'}">${kevHit(x)?'PÉRIMÈTRE':'KEV'}</span><a href="https://nvd.nist.gov/vuln/detail/${esc(x.id)}" target="_blank" rel="noopener noreferrer">${esc(x.id)} · ${esc(x.v)} ${esc(x.p)}</a><div class="meta">${esc(x.n)}<br>ajouté ${esc(x.d)} · échéance ${esc(x.due)}${dueBadge(x)} ${x.r?'<span class="tag w">ransomware</span>':''}</div></div>`).join('')+'</div>':'<div class="empty">Chargement…</div>');
+  const g=S.gh,L=recs().filter(x=>!S.ghf||x.k||recHit(x)||x.ep>=0.1||x.s>=7||x.e==='active');
   const chip=x=>x.s>=9?['u','CVSS '+x.s]:x.s>=7?['h','CVSS '+x.s]:x.s>0?['m','CVSS '+x.s]:['i','non noté'];
   $('#p-new').innerHTML=`<h2>Nouveaux CVE<small>dépôt CVEProject/cvelistV5${g?' · '+g.n24+' en 24 h, '+g.n48+' en 48 h':''}</small></h2>`+(S.gerr?`<div class="err">${esc(S.gerr)}</div>`:'')+
    (g?`<div class="meta" style="color:var(--m);font-size:12px">Publications par heure sur 48 h</div>${bars(g.hours,g.hours.map((_,i)=>'il y a '+(47-i)+' h'),47,50)}
-   <label style="font-size:12px;color:var(--m)"><input type="checkbox" data-a="ghf" ${S.ghf?'checked':''}> Seulement périmètre, CVSS ≥ 7 ou exploitation active (${L.length} sur ${Object.keys(S.rec).length} détaillés)</label>
-   <div class="list">`+(L.slice(0,30).map(x=>{const c=chip(x);return `<div class="row"><span class="sv ${c[0]}">${c[1]}</span><a href="https://www.cve.org/CVERecord?id=${esc(x.id)}" target="_blank" rel="noopener noreferrer">${esc(x.id)} · ${esc(x.v)} ${esc(x.p)}</a><div class="meta">${esc(x.t)} · ${fmt(x.ts)} ${recHit(x)?'<span class="tag w">périmètre</span>':''} ${x.e==='active'?'<span class="tag w">exploité</span>':''}</div></div>`}).join('')||'<div class="empty">Rien ne correspond au filtre.</div>')+'</div>':'<div class="empty">Chargement…</div>');
+   <label style="font-size:12px;color:var(--m)"><input type="checkbox" data-a="ghf" ${S.ghf?'checked':''}> Seulement priorités : KEV, périmètre, EPSS ≥ 10 %, CVSS ≥ 7 ou exploitation active (${L.length} sur ${Object.keys(S.rec).length} détaillés)</label>
+   <div class="list">`+(L.slice(0,30).map(x=>{const c=chip(x);return `<div class="row"><span class="cc"><span class="sv ${c[0]}">${c[1]}</span>${x.ep>=0.01?`<span class="sv ${x.ep>=0.1?'u':'i'}" title="Probabilité d’exploitation dans les 30 jours (FIRST EPSS)">EPSS ${(x.ep*100).toFixed(x.ep<0.1?1:0)} %</span>`:''}</span><a href="https://www.cve.org/CVERecord?id=${esc(x.id)}" target="_blank" rel="noopener noreferrer">${esc(x.id)} · ${esc(x.v)} ${esc(x.p)}</a><div class="meta">${esc(x.t)} · ${fmt(x.ts)} ${x.k?'<span class="tag w">KEV</span>':''} ${recHit(x)?'<span class="tag w">périmètre</span>':''} ${x.e==='active'?'<span class="tag w">exploité</span>':''}</div></div>`}).join('')||'<div class="empty">Rien ne correspond au filtre.</div>')+'</div>':'<div class="empty">Chargement…</div>');
   const c=S.cve,gd=S.gh?.days||[],mt='style="color:var(--m);font-size:12px"';
   $('#p-cve').innerHTML=`<h2>Volume de CVE publiés<small>${g?'dépôt cvelistV5':''}</small></h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
    <div><div class="meta" ${mt}>Par jour, 7 derniers jours (le jour en cours est partiel)</div>${gd.length?bars(gd.map(x=>x[1]),gd.map(x=>x[0]),gd.length-1,70)+`<div class="meta" ${mt}>${gd.map(x=>esc(x[0])+' : '+x[1]).join(' · ')}</div>`:'<div class="empty">Chargement…</div>'}</div>
    <div><div class="meta" ${mt}>13 derniers mois</div>${c?bars(c.mc.slice(1),c.m.slice(1),12):'<div class="empty">Historique mensuel indisponible depuis ce réseau (il exige un proxy public).</div>'}</div></div>`;
-  $('#p-map').innerHTML=`<h2>Cartes de menaces en direct</h2><div class="maps">${MAPS.map(([n,u])=>`<button data-a="map" data-u="${u}" class="${S.map===u?'on':''}">${n}</button>`).join('')}</div>
-  <iframe id="frame" title="Carte de menaces" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer" loading="lazy"></iframe>
-  <div class="empty" id="fh">Choisis une carte pour l’afficher ici. Si elle reste vide, le site refuse l’intégration : <a href="#" data-a="out">ouvre-la dans un onglet</a>.</div>`;
-  if(S.map){const f=$('#frame');f.src=S.map;f.style.display='block';$('#fh').innerHTML=`<a href="${esc(S.map)}" target="_blank" rel="noopener noreferrer">Ouvrir dans un onglet</a> si la carte reste vide (intégration refusée par le site).`}
+  const cs=S.cloud,stl={ok:'Normal',deg:'Dégradé',out:'Panne',unknown:'Inconnu'};
+  $('#p-cloud').innerHTML=`<h2>Météo Cloud &amp; SaaS critiques<small>${cs?'MAJ '+new Date(cs.at).toLocaleTimeString('fr-FR',{timeStyle:'short'}):''}</small></h2>`+(cs?cs.services.map(x=>`<div class="cl"><span class="dot ${esc(x.state)}"></span><a href="${esc(safeUrl(x.url))}" target="_blank" rel="noopener noreferrer">${esc(x.name)}</a><span class="${x.state==='ok'?'good':x.state==='unknown'?'':'err'}">${stl[x.state]||'Inconnu'}</span><div class="meta">${esc(x.note||'')}</div></div>`).join(''):'<div class="empty">Données serveur requises (indisponible en mode direct).</div>');
+  const rs=S.ransom,ri=rs?.items||[];
+  $('#p-ransom').innerHTML=`<h2>Revendications ransomware (FR)<small><a href="https://www.ransomware.live/map/FR" target="_blank" rel="noopener noreferrer">ransomware.live</a></small></h2>`+(rs?(ri.length?'<div class="list">'+ri.slice(0,40).map(x=>`<div class="row"><span class="sv u">${esc(x.g||'?')}</span><span style="font-weight:600;overflow-wrap:anywhere">${esc(x.v)}</span><div class="meta">${esc(x.a||'secteur inconnu')} · ${fmt(x.d)}</div></div>`).join('')+'</div>':'<div class="empty">Aucune revendication française récente.</div>'):'<div class="empty">Données serveur requises (indisponible en mode direct).</div>');
   renderFeed();stats();
 }
 const TYPES=[['Ransomware',/ransomware|rançongiciel|lockbit|extorsion/i],['Fuite de données',/fuite|breach|leak|données? (?:personnelles|volées)|exfiltr/i],['Phishing, arnaque',/phishing|hameçonnage|arnaque|smishing|usurpation|escroquerie/i],['Vulnérabilité',/vulnérab|vulnerab|cve-\d|zero-?day|0-?day|exploit|\brce\b|correctif|patch/i],['DDoS',/ddos|déni de service/i],['Malware, botnet',/malware|botnet|trojan|stealer|backdoor|logiciel malveillant/i]];
@@ -301,11 +334,11 @@ function stats(){
   <h2 style="margin-top:14px">Éditeurs les plus touchés<small>CISA KEV, 30 j</small></h2>${vr.length?hb(vr,r=>kevHit({v:r[0],p:''})):'<div class="empty">Pas encore de données.</div>'}`;
 }
 function renderFeed(){
-  if(!$('#fl')){$('#p-feed').innerHTML=`<h2>Fil des dépêches<small id="fc"></small></h2><div class="ctl"><input id="fq" type="search" placeholder="Rechercher…" aria-label="Rechercher"><select id="fz" aria-label="Zone"><option value="all">Toutes zones</option><option value="fr">France</option><option value="int">International</option></select><select id="fs" aria-label="Source"></select><label style="font-size:12px;color:var(--m);display:flex;gap:4px;align-items:center"><input type="checkbox" id="fu"> Non lus</label></div><div id="fl"></div>`}
+  if(!$('#fl')){$('#p-feed').innerHTML=`<h2>Fil des dépêches<small id="fc"></small></h2><div class="ctl"><input id="fq" type="search" placeholder="Rechercher…" aria-label="Rechercher"><select id="fz" aria-label="Zone"><option value="all">Toutes zones</option><option value="fr">France</option><option value="int">International</option></select><select id="fs" aria-label="Source"></select><label style="font-size:12px;color:var(--m);display:flex;gap:4px;align-items:center"><input type="checkbox" id="fu"> Non lus</label><label style="font-size:12px;color:var(--m);display:flex;gap:4px;align-items:center"><input type="checkbox" id="fw"> Mon périmètre</label></div><div id="fl"></div>`}
   const srcs=[...new Set(S.items.map(a=>a.src))].sort(),fs=$('#fs'),cur=S.fsrc||'';
   fs.innerHTML='<option value="">Toutes sources</option>'+srcs.map(x=>`<option ${x===cur?'selected':''}>${esc(x)}</option>`).join('');
-  const q=($('#fq').value||'').toLowerCase(),z=$('#fz').value,un=$('#fu').checked;
-  const L=S.items.filter(a=>(z==='all'||(z==='int')===(a.z==='int'))&&(!cur||a.src===cur)&&(!q||(a.title+' '+a.sum+' '+a.src).toLowerCase().includes(q))&&(!un||!S.read.has(a.id)));
+  const q=($('#fq').value||'').toLowerCase(),z=$('#fz').value,un=$('#fu').checked;$('#fw').checked=S.wo;
+  const L=S.items.filter(a=>(z==='all'||(z==='int')===(a.z==='int'))&&(!cur||a.src===cur)&&(!q||(a.title+' '+a.sum+' '+a.src).toLowerCase().includes(q))&&(!un||!S.read.has(a.id))&&(!S.wo||itemHit(a)));
   $('#fc').textContent=`${L.length} dépêches · ${S.feeds.filter(f=>f.on!==false).length} sources`;
   $('#fl').innerHTML=rows(L,60);
 }
@@ -320,7 +353,7 @@ const modal=h=>{$('#modal').innerHTML=h;$('#modal').classList.add('on')},closeMo
 function feedsModal(){
   modal(`<div class="box"><h2>Flux RSS / Atom</h2><div class="f"><input id="nn" placeholder="Nom"><input id="nu" type="url" placeholder="https://…/feed.xml"><select id="nl"><option>FR</option><option>EN</option></select><button data-a="add">Ajouter</button></div>`+
   S.feeds.map(f=>{const s=S.st[f.id];return `<div class="fl" data-fid="${esc(f.id)}"><input type="checkbox" data-a="on" ${f.on!==false?'checked':''} aria-label="Activer"><div><b>${esc(f.name)}</b> <span class="tag">${esc(f.lang)}</span><small>${esc(f.url)}</small><small class="${s?(s.ok?'good':'err'):''}">${s?(s.ok?s.n+' articles ('+s.via+')':esc(s.err)):'pas encore chargé'}</small></div><button data-a="del">Supprimer</button></div>`}).join('')+
-  `<div class="foot"><button data-a="defaults">Rétablir les flux par défaut</button><button data-a="close">Fermer</button></div></div>`);
+  `<div class="foot"><div style="display:flex;gap:6px;flex-wrap:wrap"><button data-a="defaults">Rétablir les flux par défaut</button><button data-a="cfgexp">Exporter la config</button><button data-a="cfgimp">Importer…</button><input id="cfgf" type="file" accept="application/json,.json" hidden></div><button data-a="close">Fermer</button></div></div>`);
 }
 const TESTS=[['Données serveur (branche data)','@BASE'],['GitHub raw (CVE et miroir KEV)',GH+'delta.json'],['cve.0xosprey.com (historique)',CVE],['Proxy codetabs','https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fexample.com'],['Proxy corsproxy','https://corsproxy.io/?https%3A%2F%2Fexample.com'],['Proxy allorigins','https://api.allorigins.win/raw?url=https%3A%2F%2Fexample.com']];
 async function netTest(){
@@ -334,6 +367,25 @@ async function netTest(){
   }));
   $('#nt').innerHTML=out.join('')+'<p style="color:var(--m);font-size:12px">Si GitHub raw est bloqué, les panneaux « Nouveaux CVE » et le miroir KEV échouent : à faire autoriser sur le proxy (raw.githubusercontent.com). cve.0xosprey.com peut échouer sans CORS, alors seuls les proxys le servent.</p>';
 }
+function exportCfg(){
+  const cfg={app:'cyber-mission-control',version:1,exportedAt:new Date().toISOString(),watch:S.watch,base:S.base,feeds:S.feeds,deletedDefaults:store.get('cv_del',[])};
+  const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify(cfg,null,2)],{type:'application/json'}));l.download='cyber-mission-control-config.json';document.body.append(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(l.href),1000);
+}
+function importCfg(file){
+  if(!file)return;const rd=new FileReader();
+  rd.onload=()=>{try{
+    const c=JSON.parse(rd.result);if(c.app!=='cyber-mission-control'||!Array.isArray(c.feeds))throw Error('fichier de configuration non reconnu');
+    const feeds=c.feeds.filter(f=>f&&typeof f.id==='string'&&/^[\w-]{1,40}$/.test(f.id)&&typeof f.name==='string'&&typeof f.url==='string'&&/^https?:\/\//i.test(f.url)).map(f=>({id:f.id,name:f.name.slice(0,80),url:f.url,cat:typeof f.cat==='string'?f.cat.slice(0,40):'Actu Cyber',lang:f.lang==='EN'?'EN':'FR',...(f.on===false?{on:false}:{})}));
+    if(!feeds.length)throw Error('aucun flux valide dans le fichier');
+    if(!confirm('Remplacer les flux et le périmètre actuels par ceux du fichier ('+feeds.length+' flux) ?'))return;
+    S.feeds=feeds;saveFeeds();
+    if(typeof c.watch==='string'){S.watch=c.watch.slice(0,500);store.set('cv_watch',S.watch)}
+    if(typeof c.base==='string'&&/^https:\/\//.test(c.base)){S.base=c.base.endsWith('/')?c.base:c.base+'/';store.set('cv_base',S.base)}
+    store.set('cv_del',Array.isArray(c.deletedDefaults)?c.deletedDefaults.filter(x=>typeof x==='string').slice(0,50):[]);
+    closeModal();refresh();
+  }catch(e){alert('Import impossible : '+e.message)}};
+  rd.readAsText(file);
+}
 function exportCSV(){
   const c=v=>{v=String(v??'');if(/^[=+\-@\t\r]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
   const rows=S.items.map(a=>[a.title,a.src,a.z,a.sev,a.rel,fmt(a.ts),a.link]);
@@ -341,23 +393,53 @@ function exportCSV(){
   const l=document.createElement('a');l.href=URL.createObjectURL(blob);l.download='veille-cyber-'+new Date().toISOString().slice(0,10)+'.csv';document.body.append(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(l.href),1000);
 }
 
+/* ---- Recherche d'indicateurs (IOC) : 100 % navigateur, aucun appel réseau ---- */
+function iocParse(raw){
+  const v=raw.trim().replace(/hxxp/gi,'http').replace(/\[\.\]|\(\.\)|\[dot\]/gi,'.').replace(/\[:\]/g,':').replace(/\s+/g,'');
+  if(/^CVE-\d{4}-\d{4,}$/i.test(v))return {t:'CVE',v:v.toUpperCase()};
+  if(/^(?:[a-f0-9]{32}|[a-f0-9]{40}|[a-f0-9]{64})$/i.test(v))return {t:'Hash',v:v.toLowerCase()};
+  if(/^(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)$/.test(v)||(/^[0-9a-f:]{3,}$/i.test(v)&&(v.match(/:/g)||[]).length>=2))return {t:'IP',v};
+  if(/^https?:\/\/[^\s/]+/i.test(v))return {t:'URL',v};
+  if(/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(v))return {t:'Domaine',v:v.toLowerCase()};
+  return null;
+}
+function iocLinks(x){
+  const e=encodeURIComponent,v=x.v,vt='https://www.virustotal.com/gui/';
+  return {
+    IP:[['VirusTotal',vt+'ip-address/'+e(v)],['AbuseIPDB','https://www.abuseipdb.com/check/'+e(v)],['Talos','https://talosintelligence.com/reputation_center/lookup?search='+e(v)],['OTX','https://otx.alienvault.com/indicator/ip/'+e(v)],['GreyNoise','https://viz.greynoise.io/ip/'+e(v)],['Shodan','https://www.shodan.io/host/'+e(v)]],
+    Domaine:[['VirusTotal',vt+'domain/'+e(v)],['urlscan','https://urlscan.io/search/#'+e('domain:'+v)],['Talos','https://talosintelligence.com/reputation_center/lookup?search='+e(v)],['OTX','https://otx.alienvault.com/indicator/domain/'+e(v)],['URLhaus','https://urlhaus.abuse.ch/browse.php?search='+e(v)],['crt.sh','https://crt.sh/?q='+e(v)]],
+    URL:[['VirusTotal',vt+'search/'+e(v)],['urlscan','https://urlscan.io/search/#'+e(v)],['URLhaus','https://urlhaus.abuse.ch/browse.php?search='+e(v)]],
+    Hash:[['VirusTotal',vt+'file/'+e(v)],['MalwareBazaar','https://bazaar.abuse.ch/browse.php?search='+e(v)],['Hybrid Analysis','https://www.hybrid-analysis.com/search?query='+e(v)],['OTX','https://otx.alienvault.com/indicator/file/'+e(v)]],
+    CVE:[['NVD','https://nvd.nist.gov/vuln/detail/'+e(v)],['cve.org','https://www.cve.org/CVERecord?id='+e(v)],['EPSS (JSON)','https://api.first.org/data/v1/epss?cve='+e(v)]]
+  }[x.t];
+}
+function iocShow(){
+  const r=$('#iocr'),raw=$('#ioc').value;
+  if(!raw.trim()){r.classList.remove('on');return}
+  const x=iocParse(raw);
+  r.innerHTML=x?`<div style="color:var(--m);font-size:12px">${x.t} détecté : <b style="color:var(--t)">${esc(x.v)}</b></div><div class="maps" style="margin:8px 0 6px">${iocLinks(x).map(([n,u])=>`<a class="tag" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(n)}</a>`).join('')}</div><div style="color:var(--m);font-size:11px">Entrée : ouvre le premier lien. Réservé aux indicateurs publics, jamais de données internes.</div>`:'<div style="color:var(--m);padding:2px 0">Indicateur non reconnu (IP, domaine, hash MD5/SHA, URL ou CVE).</div>';
+  r.classList.add('on');
+}
+
 /* ---- Événements ---- */
 document.addEventListener('click',e=>{
+  if(!e.target.closest('#iocw'))$('#iocr').classList.remove('on');
   const b=e.target.closest('[data-a]');if(!b){if(e.target.id==='modal')closeModal();return}
   const a=b.dataset.a,fid=b.closest('[data-fid]')?.dataset.fid;
   if(a==='open'){S.read.add(b.dataset.id);saveRead();b.closest('.row').classList.add('rd');kpis();return}
-  if(a==='on'||a==='ghf')return;
+  if(a==='on'||a==='ghf'||a==='wo')return;
   if(a==='ghf')return;
   e.preventDefault&&a!=='open'&&['refresh','map','out','feeds','csv','close','del','defaults','add','savebase','net'].includes(a)&&e.preventDefault();
   switch(a){
     case 'refresh':refresh();break;
     case 'ghf':S.ghf=b.checked;store.set('cv_ghf',S.ghf);panels();break;
-    case 'map':S.map=S.map===b.dataset.u?'':b.dataset.u;panels();break;
-    case 'out':window.open(MAPS[0][1],'_blank','noopener');break;
+    case 'readall':S.items.forEach(a=>S.read.add(a.id));saveRead();render();break;
+    case 'cfgexp':exportCfg();break;
+    case 'cfgimp':$('#cfgf').click();break;
     case 'feeds':feedsModal();break;case 'csv':exportCSV();break;case 'net':netTest();break;
     case 'savebase':{let u=$('#bu').value.trim();if(!/^https:\/\//.test(u))return;if(!u.endsWith('/'))u+='/';S.base=u;store.set('cv_base',u);closeModal();refresh();break}case 'close':closeModal();break;
-    case 'del':S.feeds=S.feeds.filter(f=>f.id!==fid);saveFeeds();feedsModal();render();break;
-    case 'defaults':S.feeds=DEF.slice();saveFeeds();feedsModal();refresh();break;
+    case 'del':S.feeds=S.feeds.filter(f=>f.id!==fid);saveFeeds();if(DEF.some(d=>d.id===fid))store.set('cv_del',[...new Set([...store.get('cv_del',[]),fid])]);feedsModal();render();break;
+    case 'defaults':S.feeds=DEF.slice();store.set('cv_del',[]);saveFeeds();feedsModal();refresh();break;
     case 'add':{const name=$('#nn').value.trim(),url=$('#nu').value.trim();if(!name||!/^https?:\/\//i.test(url))return;S.feeds.push({id:'u'+Date.now(),name,url,cat:'Actu Cyber',lang:$('#nl').value});saveFeeds();feedsModal();refresh()}
   }
 });
@@ -365,12 +447,18 @@ document.addEventListener('change',e=>{
   const b=e.target.closest('[data-a]');
   if(b&&b.dataset.a==='on'){const f=S.feeds.find(x=>x.id===b.closest('[data-fid]').dataset.fid);f.on=b.checked;saveFeeds();refresh()}
   else if(b&&b.dataset.a==='ghf'){S.ghf=b.checked;store.set('cv_ghf',S.ghf);panels()}
+  else if(b&&b.dataset.a==='wo'||e.target.id==='fw'){S.wo=e.target.checked;store.set('cv_wo',S.wo);panels()}
+  else if(e.target.id==='cfgf'){importCfg(e.target.files[0]);e.target.value=''}
   else if(e.target.id==='fs'){S.fsrc=e.target.value;renderFeed()}
   else if(e.target.id==='fz'||e.target.id==='fu')renderFeed()
   else if(e.target.id==='watch'){S.watch=e.target.value;store.set('cv_watch',S.watch);render()}
 });
-document.addEventListener('input',e=>{if(e.target.id==='fq')renderFeed()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+document.addEventListener('input',e=>{if(e.target.id==='fq')renderFeed();else if(e.target.id==='ioc')iocShow()});
+document.addEventListener('keydown',e=>{
+  if(e.target.id==='ioc'){if(e.key==='Enter'){const x=iocParse(e.target.value);if(x)window.open(iocLinks(x)[0][1],'_blank','noopener,noreferrer')}else if(e.key==='Escape'){e.target.value='';iocShow();e.target.blur()}return}
+  if(e.key==='Escape')closeModal();
+  else if(e.key==='/'&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();$('#ioc').focus()}
+});
 setInterval(()=>{if(!S.loading&&--S.timer<=0)refresh();tick()},1000);
 render();tick();refresh();
 </script>
