@@ -289,9 +289,21 @@ def check_service(s):
         return dict(base, state="unknown", note=(s.get("hint") or "source indisponible : " + str(e))[:140], n=0)
 
 
+STATE_CODE = {"ok": 0, "deg": 1, "out": 2, "unknown": 3}
+
+
 def build_status():
+    """Relevé courant + historique 7 jours par service : hist = [[horodatage ms, code 0 normal/1 dégradé/2 panne/3 inconnu], ...]"""
+    old = {x["id"]: x.get("hist", []) for x in (prev("status.json") or {}).get("services", [])}
     with ThreadPoolExecutor(5) as ex:
         res = list(ex.map(check_service, STATUS))
+    now = int(time.time() * 1000)
+    for r in res:
+        h = [x for x in old.get(r["id"], []) if now - x[0] < 7 * 86400000]
+        if h and now - h[-1][0] < 300000:  # deux exécutions rapprochées : on remplace le dernier relevé
+            h.pop()
+        h.append([now, STATE_CODE.get(r["state"], 3)])
+        r["hist"] = h[-400:]
     return dict(at=datetime.now(timezone.utc).isoformat(), services=res)
 
 
