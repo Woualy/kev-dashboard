@@ -17,7 +17,7 @@ button:hover{border-color:var(--a)}
 input,select{background:var(--bg);border:1px solid var(--b);border-radius:5px;padding:4px 8px;min-width:0}
 a{color:inherit}
 header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid var(--b);background:#0f1a26}
-.brand{font-weight:700;font-size:17px;margin-right:auto}
+.brand{font-weight:700;font-size:17px;margin-right:14px}
 .brand small{display:block;font-weight:400;font-size:12px;color:var(--m)}
 #clock{font-size:20px;font-weight:600}
 #st{color:var(--m);font-size:12px}
@@ -90,22 +90,34 @@ svg{width:100%;height:auto;display:block}
 .f{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}.f input:nth-child(2){grid-column:1/-1}
 .foot{display:flex;justify-content:space-between;margin-top:10px}
 @media(prefers-reduced-motion:no-preference){.pulse{animation:p 1.4s infinite}@keyframes p{50%{opacity:.45}}}
+.tabs{display:flex;gap:4px;margin-right:auto}.tabs button{padding:5px 14px;border-radius:6px}.tabs button.on{background:var(--a);color:#06121c;border-color:var(--a);font-weight:600}
+.tabs small{background:var(--u);color:#fff;border-radius:8px;padding:0 6px;margin-left:6px;font-size:11px}.tabs small:empty{display:none}
+main[hidden],#vig[hidden]{display:none!important}
+#pg-zd{grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}#pg-zd .kpis,#zctl{grid-column:1/-1}
+@media(min-width:2300px){#pg-zd{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(min-width:2300px) and (min-height:1000px){#pg-zd{grid-template-rows:auto auto minmax(0,1fr)}}
 </style>
 </head>
 <body>
 <header>
-  <div class="brand">Cyber mission control<small>Veille France · actualisation automatique toutes les 30 min · build 18/11-a</small></div>
+  <div class="brand">Cyber mission control<small>Veille France · actualisation automatique toutes les 30 min · build 18/11-b</small></div>
+  <nav class="tabs" role="tablist" aria-label="Pages"><button role="tab" data-a="page" data-p="veille">Veille</button><button role="tab" data-a="page" data-p="zd" id="tabzd">Zero day<small id="tabzdn"></small></button></nav>
   <div id="iocw"><input id="ioc" type="search" placeholder="IP, domaine, hash, URL, CVE  ( / )" aria-label="Rechercher un indicateur" autocomplete="off"><div id="iocr"></div></div><div id="clock"></div><div id="st"></div>
   <button data-a="refresh" title="Actualiser maintenant" aria-label="Actualiser">⟳</button>
   <button data-a="readall" title="Marquer toutes les dépêches comme lues">Tout lu</button><button data-a="net">Réseau</button><button data-a="feeds">Flux</button><button data-a="csv">Export CSV</button>
 </header>
 <div id="vig"></div>
-<main>
+<main id="pg-veille">
   <div class="kpis" id="kpis"></div>
   <section id="p-cert"></section><section id="p-leak"></section><section id="p-kev"></section>
   <section id="p-new" class="w2"></section><section id="p-ransom"></section>
   <section id="p-feed" class="w2"></section><section id="p-stats"></section>
   <section id="p-cloud" class="w3"></section>
+</main>
+<main id="pg-zd" hidden>
+  <div class="kpis" id="zkpis"></div>
+  <section id="zctl"></section>
+  <section id="z-zdi"></section><section id="z-cisco"></section><section id="z-fortinet"></section><section id="z-pan"></section>
 </main>
 <div id="modal"></div>
 <script>
@@ -131,13 +143,18 @@ const DEF=[
  {id:'act',name:'CERT-FR – Actualités',url:'https://www.cert.ssi.gouv.fr/actualite/feed/',cat:'Actu Cyber',lang:'FR'},
  {id:'enisa',name:'ENISA',url:'https://www.enisa.europa.eu/rss.xml',cat:'Actu Cyber',lang:'EN'},
  {id:'cnil',name:'CNIL',url:'https://www.cnil.fr/fr/rss.xml',cat:'Actu Cyber',lang:'FR'},
- {id:'isc',name:'SANS ISC',url:'https://isc.sans.edu/rssfeed_full.xml',cat:'Actu Cyber',lang:'EN'}];
-const zone=f=>/cert\.ssi\.gouv/.test(f.url)?(/alerte/.test(f.url)?'alerte':/\/cti/.test(f.url)?'cti':/\/actualite/.test(f.url)?'fr':'avis'):/frenchbreaches/.test(f.url)?'leak':f.lang==='FR'?'fr':'int';
-function loadFeeds(){let f=store.get('cv_feeds',null)||DEF.slice();f=f.map(x=>/cisa\.gov\/cybersecurity-advisories/.test(x.url)?DEF.find(d=>d.id==='6'):x);if(!f.some(x=>/frenchbreaches/.test(x.url)))f.unshift(DEF[0]);const del=new Set(store.get('cv_del',[])),have=new Set(f.map(x=>x.id));if(store.get('cv_mig',0)<1){['cti','act','enisa','cnil','isc'].forEach(id=>{if(!have.has(id)&&!del.has(id))f.push(DEF.find(d=>d.id===id))});store.set('cv_feeds',f);store.set('cv_mig',1)}return f}
+ {id:'isc',name:'SANS ISC',url:'https://isc.sans.edu/rssfeed_full.xml',cat:'Actu Cyber',lang:'EN'},
+ {id:'zdi',name:'ZDI – Avis publiés',url:'https://www.zerodayinitiative.com/rss/published/',cat:'Vulnérabilités',lang:'EN',zone:'zd'},
+ {id:'cisco',name:'Cisco PSIRT',url:'https://sec.cloudapps.cisco.com/security/center/psirtrss20/CiscoSecurityAdvisory.xml',cat:'Vulnérabilités',lang:'EN',zone:'zd'},
+ {id:'fortinet',name:'Fortinet PSIRT',url:'https://filestore.fortinet.com/fortiguard/rss/ir.xml',cat:'Vulnérabilités',lang:'EN',zone:'zd'},
+ {id:'fortioutbreak',name:'Fortinet – Outbreak alerts',url:'https://filestore.fortinet.com/fortiguard/rss/outbreakalert.xml',cat:'Vulnérabilités',lang:'EN',zone:'zd'},
+ {id:'pan',name:'Palo Alto Networks',url:'https://security.paloaltonetworks.com/rss.xml',cat:'Vulnérabilités',lang:'EN',zone:'zd'}];
+const zone=f=>f.zone?f.zone:(/cert\.ssi\.gouv/.test(f.url)?(/alerte/.test(f.url)?'alerte':/\/cti/.test(f.url)?'cti':/\/actualite/.test(f.url)?'fr':'avis'):/frenchbreaches/.test(f.url)?'leak':f.lang==='FR'?'fr':'int');
+function loadFeeds(){let f=store.get('cv_feeds',null)||DEF.slice();f=f.map(x=>/cisa\.gov\/cybersecurity-advisories/.test(x.url)?DEF.find(d=>d.id==='6'):x);if(!f.some(x=>/frenchbreaches/.test(x.url)))f.unshift(DEF[0]);const del=new Set(store.get('cv_del',[])),have=new Set(f.map(x=>x.id));const mig=store.get('cv_mig',0);[[1,['cti','act','enisa','cnil','isc']],[2,['zdi','cisco','fortinet','fortioutbreak','pan']]].forEach(([v,ids])=>{if(mig<v)ids.forEach(id=>{if(!have.has(id)&&!del.has(id))f.push(DEF.find(d=>d.id===id))})});if(mig<2){store.set('cv_feeds',f);store.set('cv_mig',2)}return f}
 const S={feeds:loadFeeds(),items:store.get('cv_cache',[]),st:{},read:new Set(store.get('cv_read',[])),kev:store.get('cv_kev',null),cve:store.get('cv_cve',null),
  watch:store.get('cv_watch','Microsoft, Fortinet, Citrix, Cisco, Ivanti, VMware, Palo Alto, Veeam'),gh:store.get('cv_gh',null),rec:store.get('cv_rec',{}),ghf:store.get('cv_ghf',true),gerr:'',kerr:'',cerr:'',map:'',loading:false,last:store.get('cv_last',0),timer:1800};
 S.items.forEach(a=>{if(!a.z){const f=S.feeds.find(x=>x.id===a.fid);a.z=f?zone(f):'int'}}); // anciens caches sans zone
-S.fail={};S.base=store.get('cv_base','https://raw.githubusercontent.com/Woualy/kev-dashboard/data/');S.srv=null;S.cloud=store.get('cv_cl',null);S.ransom=store.get('cv_rs',null);S.wo=store.get('cv_wo',false);
+S.fail={};S.base=store.get('cv_base','https://raw.githubusercontent.com/Woualy/kev-dashboard/data/');S.srv=null;S.zd=store.get('cv_zd',[]);S.pg=store.get('cv_pg','veille');S.zf=Object.assign({zero:false,wo:false,hi:false,grp:true},store.get('cv_zf',{}));S.zf.q='';S.zopen=new Set();S.cloud=store.get('cv_cl',null);S.ransom=store.get('cv_rs',null);S.wo=store.get('cv_wo',false);
 const saveFeeds=()=>store.set('cv_feeds',S.feeds),saveRead=()=>store.set('cv_read',[...S.read].slice(-3000));
 
 const ROUTES=[['direct',u=>u],['codetabs',u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u)],['corsproxy',u=>'https://corsproxy.io/?'+encodeURIComponent(u)],['allorigins',u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)]];
@@ -177,7 +194,7 @@ function parseXML(xml,f){
     const raw=g(n,'content:encoded')||g(n,'content')||g(n,'description')||g(n,'summary');
     const ds=g(n,'pubDate')||g(n,'published')||g(n,'updated')||g(n,'dc:date'),ts=ds?Date.parse(ds):0;
     const cats=[...n.getElementsByTagName('category')].map(c=>c.textContent.trim()||c.getAttribute('term')||'');
-    const a={id:f.id+'|'+(guid||link||title),fid:f.id,z,title:plain(title),link:safeUrl(link),sum:plain(raw,200),ts:isNaN(ts)?0:ts,src:f.name,lang:f.lang,cats,
+    const a={id:f.id+'|'+(guid||link||title),fid:f.id,z,title:plain(title),link:safeUrl(link),sum:plain(raw,z==='zd'?600:200),ts:isNaN(ts)?0:ts,src:f.name,lang:f.lang,cats,
       rel:z==='leak'?(cats.find(c=>/^(confirmed|credible)$/i.test(c))||'').toLowerCase():''};
     a.vol=z==='leak'?volume(a.title+' '+a.sum):0;a.sev=severity(a,z);return a;
   });
@@ -226,12 +243,13 @@ async function loadServer(){ // données préparées par GitHub Actions (branche
     const opt=['history.json','status.json','ransom.json'];
     const [m,fe,kv,cv,hi,sj,rj]=await Promise.all(['meta.json','feeds.json','kev.json','cve.json','history.json','status.json','ransom.json'].map(f=>g(f).catch(e=>opt.includes(f)?null:Promise.reject(e))));
     const on=new Set(S.feeds.filter(f=>f.on!==false).map(f=>f.id));
-    S.items=fe.items.filter(a=>on.has(a.fid)).map(a=>{a.vol=a.z==='leak'?volume(a.title+' '+a.sum):0;a.sev=severity(a,a.z);return a}).sort((a,b)=>b.ts-a.ts).slice(0,500);
+    const all=fe.items.filter(a=>on.has(a.fid)).map(a=>{a.vol=a.z==='leak'?volume(a.title+' '+a.sum):0;a.sev=severity(a,a.z);return a}).sort((a,b)=>b.ts-a.ts);
+    S.zd=all.filter(a=>a.z==='zd').slice(0,400);S.items=all.filter(a=>a.z!=='zd').slice(0,500);
     const sid=new Set(Object.keys(m.feeds||{})),loc=S.feeds.filter(f=>f.on!==false&&!sid.has(f.id)),old=store.get('cv_cache',[]);
     S.kev=kv;S.kerr='';S.gh=cv.gh;S.rec=cv.recs;S.gerr='';if(hi){S.cve=hi;S.cerr=''}
     Object.entries(m.feeds||{}).forEach(([id,x])=>{S.st[id]=x.ok?{ok:1,n:x.n,via:'serveur'}:{ok:0,err:x.err||'erreur côté serveur'}});
     S.srv={at:Date.parse(m.generatedAt),parts:m.parts};if(sj){S.cloud=sj;store.set('cv_cl',sj)}if(rj){S.ransom=rj;store.set('cv_rs',rj)}
-    store.set('cv_cache',S.items);store.set('cv_kev',S.kev);store.set('cv_gh',S.gh);store.set('cv_rec',S.rec);if(hi)store.set('cv_cve',hi);
+    store.set('cv_cache',S.items);store.set('cv_zd',S.zd);store.set('cv_kev',S.kev);store.set('cv_gh',S.gh);store.set('cv_rec',S.rec);if(hi)store.set('cv_cve',hi);
     if(loc.length)mergeLocal(loc,old); // flux ajoutés dans ce navigateur : chargés en arrière-plan puis fusionnés
     return true;
   }catch(e){S.srv=null;S.serr=e.message;return false}
@@ -259,7 +277,7 @@ async function refresh(){
   const add=a=>{const k=a.link!=='#'?a.link:a.id;if(!seen.has(k)){seen.add(k);all.push(a)}};
   res.forEach((r,i)=>{if(r.status==='fulfilled')r.value.forEach(add);else{failed.add(act[i].id);S.st[act[i].id]={ok:0,err:r.reason?.message||'Erreur'}}});
   S.items.filter(a=>failed.has(a.fid)).forEach(add);
-  all.sort((a,b)=>b.ts-a.ts);S.items=all.slice(0,500);S.last=Date.now();S.timer=1800;
+  all.sort((a,b)=>b.ts-a.ts);S.zd=all.filter(a=>a.z==='zd').slice(0,400);S.items=all.filter(a=>a.z!=='zd').slice(0,500);store.set('cv_zd',S.zd);S.last=Date.now();S.timer=1800;
   store.set('cv_cache',S.items);store.set('cv_last',S.last);render();
   await loadCve(); // historique mensuel : proxys uniquement, en dernier
   await heavy;S.loading=false;render();
@@ -296,7 +314,7 @@ function bars(vals,labels,cur,h=70){
   const w=300,mx=Math.max(...vals,1),bw=w/vals.length;
   return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="Histogramme">`+vals.map((v,i)=>{const bh=Math.max(1,v/mx*(h-4));return `<rect class="bar ${i===cur?'cur':''}" x="${(i*bw+.5).toFixed(1)}" y="${(h-bh).toFixed(1)}" width="${Math.max(bw-1,1).toFixed(1)}" height="${bh.toFixed(1)}"><title>${esc(labels[i])} : ${v.toLocaleString('fr-FR')}</title></rect>`}).join('')+'</svg>';
 }
-function render(){hdr();vig();kpis();panels()}
+function render(){hdr();vig();kpis();panels();zdRender()}
 function vig(){
   const v=vigilance(),lc=Math.max(0,...[...zi('alerte'),...zi('avis')].map(a=>a.ts)),age=lc?Math.floor((Date.now()-lc)/DAY):null;
   const warn=(age===null||age>=3)?` <span class="err">· ⚠ CERT-FR non actualisé${age===null?'':' depuis '+age+' j'} : niveau potentiellement sous-estimé</span>`:'';
@@ -379,6 +397,49 @@ function cloud(){
     <div class="sn">${esc(x.note||'')}</div>${cstrip(x.hist)}<div class="sl"><span>il y a 24 h</span><span>maintenant</span></div>${cdays(x.hist)}<div class="sl"><span>7 jours</span><span>aujourd’hui</span></div>
     <div class="sf"><span>${u===null?'—':u.toFixed(1).replace('.',',')+' % de relevés normaux'}</span>${DDS[x.id]?`<a href="https://downdetector.fr/statut/${DDS[x.id]}/" target="_blank" rel="noopener noreferrer" title="Signalements des utilisateurs">Downdetector ↗</a>`:''}</div></div>`}).join('')+'</div>';
 }
+/* ---- Page Zero day : avis ZDI et éditeurs ---- */
+const ZCOLS=[['zdi','Zero Day Initiative · avis publiés',['zdi']],['cisco','Cisco PSIRT',['cisco']],['fortinet','Fortinet · PSIRT et alertes outbreak',['fortinet','fortioutbreak']],['pan','Palo Alto Networks',['pan']]];
+function setPage(p){
+  S.pg=p==='zd'?'zd':'veille';store.set('cv_pg',S.pg);const z=S.pg==='zd';
+  $('#pg-veille').hidden=z;$('#pg-zd').hidden=!z;$('#vig').hidden=z;
+  document.querySelectorAll('.tabs button').forEach(b=>{b.classList.toggle('on',b.dataset.p===S.pg);b.setAttribute('aria-selected',String(b.dataset.p===S.pg))});
+}
+function zdInit(){
+  $('#zctl').innerHTML='<div class="ctl" style="margin:0;align-items:center"><input id="zq" type="search" placeholder="Rechercher : produit, CVE, éditeur…" aria-label="Rechercher"><label class="chk" style="margin:0"><input type="checkbox" id="zz"> 0Day seulement</label><label class="chk" style="margin:0"><input type="checkbox" id="zw"> Mon périmètre</label><label class="chk" style="margin:0"><input type="checkbox" id="zh"> CVSS ≥ 7</label><label class="chk" style="margin:0"><input type="checkbox" id="zg"> Regrouper les lots</label><span style="margin-left:auto;color:var(--m);font-size:12px">0Day = faille publiée sans correctif</span></div>';
+}
+function zdInfo(a){
+  const t=a.title.replace(/^ZDI-\d+-\d+:\s*/,''),zero=/\(0Day\)/i.test(t),p2o=/\(Pwn2Own\)/i.test(t),name=t.replace(/\((?:0Day|Pwn2Own)\)\s*/gi,'').replace(/\s+/g,' ').trim();
+  let cvss=null;const m=/CVSS rating of ([\d.]+)/i.exec(a.sum||'');
+  if(m)cvss=parseFloat(m[1]);else{const r=/(?:Security Impact Rating|Severity)\W+(Critical|High|Medium|Low)/i.exec(a.sum||'');if(r)cvss={critical:9.5,high:7.5,medium:5,low:2}[r[1].toLowerCase()]}
+  return {zero,p2o,name,cvss,cves:(a.sum||'').match(/CVE-\d{4}-\d{4,}/g)||[],prod:name.split(' ').slice(0,2).join(' ')};
+}
+function zdPass(a){
+  const f=S.zf,i=zdInfo(a);
+  return !(f.zero&&!i.zero)&&!(f.hi&&!(i.cvss>=7))&&!(f.wo&&!itemHit(a))&&(!f.q||(a.title+' '+a.sum+' '+a.src).toLowerCase().includes(f.q));
+}
+function zdRow(a,ind){
+  const i=zdInfo(a),v=i.cvss,c=v==null?['i','—']:[v>=9?'u':v>=7?'h':v>=4?'m':'i',v.toFixed(1)],ttl=/^ZDI-/.test(a.title)?i.name:a.title;
+  return `<div class="row ${S.read.has(a.id)?'rd':''}"${ind?' style="padding-left:16px"':''}><span class="cc">${i.zero?'<span class="sv u">0DAY</span>':''}<span class="sv ${c[0]}">${c[1]}</span></span><a href="${esc(a.link)}" target="_blank" rel="noopener noreferrer" data-a="open" data-id="${esc(a.id)}">${esc(ttl)}</a><div class="meta">${esc(a.src)} · ${fmt(a.ts)}${i.p2o?' · Pwn2Own':''}${i.cves.length?' · '+esc(i.cves.slice(0,3).join(', ')):''}${itemHit(a)?' <span class="tag w">PÉRIMÈTRE</span>':''}</div></div>`;
+}
+function zdGroup(g){
+  const its=g.items;if(its.length===1)return zdRow(its[0]);
+  const inf=its.map(zdInfo),mx=Math.max(...inf.map(x=>x.cvss||0)),open=S.zopen.has(g.k),unread=its.some(a=>!S.read.has(a.id));
+  return `<div class="row ${unread?'':'rd'}"><span class="cc">${inf.some(x=>x.zero)?'<span class="sv u">0DAY</span>':''}<span class="sv ${mx>=9?'u':mx>=7?'h':'m'}">${mx.toFixed(1)}</span></span><a href="#" data-a="zgrp" data-k="${esc(g.k)}">${open?'▾':'▸'} ${esc(inf[0].prod)} · ${its.length} avis</a><div class="meta">${esc(its[0].src)} · ${fmt(its[0].ts)}${its.some(itemHit)?' <span class="tag w">PÉRIMÈTRE</span>':''}</div></div>`+(open?its.map(a=>zdRow(a,1)).join(''):'');
+}
+function zdRender(){
+  const f=S.zf;
+  [['zz','zero'],['zw','wo'],['zh','hi'],['zg','grp']].forEach(([id,k])=>{const e=$('#'+id);if(e)e.checked=!!f[k]});
+  const z7=since(S.zd,7),k0=since(S.zd,14).filter(a=>zdInfo(a).zero).length,k9=z7.filter(a=>zdInfo(a).cvss>=9).length,kp=z7.filter(itemHit).length,kn=S.zd.filter(a=>Date.now()-a.ts<14*DAY&&itemHit(a)&&!S.read.has(a.id)).length;
+  $('#zkpis').innerHTML=`<div class="k ${k0?'warm':''}"><b>${k0}</b><span>0Day publiés (14 j)</span></div><div class="k ${k9?'hot':''}"><b>${k9}</b><span>CVSS ≥ 9 (7 j)</span></div><div class="k ${kp?'hot':''}"><b>${kp}</b><span>Sur ton périmètre (7 j)</span></div><div class="k"><b>${z7.length}</b><span>Avis publiés (7 j)</span></div><div class="k ${kn?'warm':''}"><b>${kn}</b><span>Périmètre non lus (14 j)</span></div>`;
+  const tb=$('#tabzdn');if(tb)tb.textContent=kp?String(kp):'';
+  ZCOLS.forEach(([id,name,fids])=>{
+    const el=$('#z-'+id);if(!el)return;
+    const all=S.zd.filter(a=>fids.includes(a.fid)),L=all.filter(zdPass),groups=[];
+    L.forEach(a=>{const k=a.fid+'|'+new Date(a.ts).toDateString()+'|'+zdInfo(a).prod,last=groups[groups.length-1];if(f.grp&&a.fid==='zdi'&&last&&last.k===k)last.items.push(a);else groups.push({k,items:[a]})});
+    const er=fids.map(x=>S.st[x]&&!S.st[x].ok?`<div class="err" style="font-size:12px;margin-bottom:4px"><b>${esc(S.feeds.find(y=>y.id===x)?.name||x)}</b> : ${esc(S.st[x].err)}</div>`:'').join('');
+    el.innerHTML=`<h2>${esc(name)}<small>${L.length}${L.length!==all.length?' sur '+all.length:''}</small></h2>${er}`+(!S.zd.length?noSrv():groups.length?'<div class="list">'+groups.slice(0,80).map(zdGroup).join('')+'</div>':`<div class="empty">${all.length?'Aucun avis ne correspond aux filtres.':'Aucun avis pour le moment.'}</div>`);
+  });
+}
 function hdr(){
   const ko=S.feeds.filter(f=>f.on!==false&&S.st[f.id]&&!S.st[f.id].ok).length,sa=S.srv?Math.round((Date.now()-S.srv.at)/6e4):null;
   $('#st').innerHTML=(S.loading?'<span class="pulse">Actualisation…</span>':`Synchro ${S.last?new Date(S.last).toLocaleTimeString('fr-FR',{timeStyle:'short'}):'–'} · <span id="tm"></span>`)+(sa!==null?` · <span class="${sa>120?'err':'good'}">données serveur : ${new Date(S.srv.at).toLocaleTimeString('fr-FR',{timeStyle:'short'})}${sa>=60?' (il y a '+Math.floor(sa/60)+' h)':''}</span>`:` · <span class="err" title="${esc(S.serr||'')}">mode direct (serveur indisponible)</span>`)+(ko?` · <button class="err" data-a="feeds">${ko} flux en erreur</button>`:'');
@@ -412,7 +473,7 @@ function importCfg(file){
   if(!file)return;const rd=new FileReader();
   rd.onload=()=>{try{
     const c=JSON.parse(rd.result);if(c.app!=='cyber-mission-control'||!Array.isArray(c.feeds))throw Error('fichier de configuration non reconnu');
-    const feeds=c.feeds.filter(f=>f&&typeof f.id==='string'&&/^[\w-]{1,40}$/.test(f.id)&&typeof f.name==='string'&&typeof f.url==='string'&&/^https?:\/\//i.test(f.url)).map(f=>({id:f.id,name:f.name.slice(0,80),url:f.url,cat:typeof f.cat==='string'?f.cat.slice(0,40):'Actu Cyber',lang:f.lang==='EN'?'EN':'FR',...(f.on===false?{on:false}:{})}));
+    const feeds=c.feeds.filter(f=>f&&typeof f.id==='string'&&/^[\w-]{1,40}$/.test(f.id)&&typeof f.name==='string'&&typeof f.url==='string'&&/^https?:\/\//i.test(f.url)).map(f=>({id:f.id,name:f.name.slice(0,80),url:f.url,cat:typeof f.cat==='string'?f.cat.slice(0,40):'Actu Cyber',lang:f.lang==='EN'?'EN':'FR',...(f.zone==='zd'?{zone:'zd'}:{}),...(f.on===false?{on:false}:{})}));
     if(!feeds.length)throw Error('aucun flux valide dans le fichier');
     if(!confirm('Remplacer les flux et le périmètre actuels par ceux du fichier ('+feeds.length+' flux) ?'))return;
     S.feeds=feeds;saveFeeds();
@@ -470,7 +531,9 @@ document.addEventListener('click',e=>{
   switch(a){
     case 'refresh':refresh();break;
     case 'ghf':S.ghf=b.checked;store.set('cv_ghf',S.ghf);panels();break;
-    case 'readall':S.items.forEach(a=>S.read.add(a.id));saveRead();render();break;
+    case 'page':setPage(b.dataset.p);break;
+    case 'zgrp':{e.preventDefault();const k=b.dataset.k;S.zopen.has(k)?S.zopen.delete(k):S.zopen.add(k);zdRender();break}
+    case 'readall':(S.pg==='zd'?S.zd:S.items).forEach(a=>S.read.add(a.id));saveRead();render();break;
     case 'cfgexp':exportCfg();break;
     case 'cfgimp':$('#cfgf').click();break;
     case 'feeds':feedsModal();break;case 'csv':exportCSV();break;case 'net':netTest();break;
@@ -485,19 +548,20 @@ document.addEventListener('change',e=>{
   if(b&&b.dataset.a==='on'){const f=S.feeds.find(x=>x.id===b.closest('[data-fid]').dataset.fid);f.on=b.checked;saveFeeds();refresh()}
   else if(b&&b.dataset.a==='ghf'){S.ghf=b.checked;store.set('cv_ghf',S.ghf);panels()}
   else if(b&&b.dataset.a==='wo'||e.target.id==='fw'){S.wo=e.target.checked;store.set('cv_wo',S.wo);panels()}
+  else if(['zz','zw','zh','zg'].includes(e.target.id)){S.zf[{zz:'zero',zw:'wo',zh:'hi',zg:'grp'}[e.target.id]]=e.target.checked;store.set('cv_zf',S.zf);zdRender()}
   else if(e.target.id==='cfgf'){importCfg(e.target.files[0]);e.target.value=''}
   else if(e.target.id==='fs'){S.fsrc=e.target.value;renderFeed()}
   else if(e.target.id==='fz'||e.target.id==='fu')renderFeed()
   else if(e.target.id==='watch'){S.watch=e.target.value;store.set('cv_watch',S.watch);render()}
 });
-document.addEventListener('input',e=>{if(e.target.id==='fq')renderFeed();else if(e.target.id==='ioc')iocShow()});
+document.addEventListener('input',e=>{if(e.target.id==='fq')renderFeed();else if(e.target.id==='ioc')iocShow();else if(e.target.id==='zq'){S.zf.q=e.target.value.toLowerCase();zdRender()}});
 document.addEventListener('keydown',e=>{
   if(e.target.id==='ioc'){if(e.key==='Enter'){const x=iocParse(e.target.value);if(x)window.open(iocLinks(x)[0][1],'_blank','noopener,noreferrer')}else if(e.key==='Escape'){e.target.value='';iocShow();e.target.blur()}return}
   if(e.key==='Escape')closeModal();
   else if(e.key==='/'&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();$('#ioc').focus()}
 });
 setInterval(()=>{if(!S.loading&&--S.timer<=0)refresh();tick()},1000);
-render();tick();refresh();
+zdInit();setPage(S.pg);render();tick();refresh();
 </script>
 </body>
 </html>
