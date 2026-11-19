@@ -32,6 +32,12 @@ FEEDS = [  # mêmes id que le dashboard ; modifie cette liste pour ajouter des f
     dict(id="enisa", name="ENISA", url="https://www.enisa.europa.eu/rss.xml", lang="EN"),
     dict(id="cnil", name="CNIL", url="https://www.cnil.fr/fr/rss.xml", lang="FR"),
     dict(id="isc", name="SANS ISC", url="https://isc.sans.edu/rssfeed_full.xml", lang="EN"),
+    # page « Zero day » : avis des éditeurs et du programme ZDI (zone "zd", affichés sur leur propre onglet)
+    dict(id="zdi", name="ZDI – Avis publiés", url="https://www.zerodayinitiative.com/rss/published/", lang="EN", zone="zd"),
+    dict(id="cisco", name="Cisco PSIRT", url="https://sec.cloudapps.cisco.com/security/center/psirtrss20/CiscoSecurityAdvisory.xml", lang="EN", zone="zd"),
+    dict(id="fortinet", name="Fortinet PSIRT", url="https://filestore.fortinet.com/fortiguard/rss/ir.xml", lang="EN", zone="zd"),
+    dict(id="fortioutbreak", name="Fortinet – Outbreak alerts", url="https://filestore.fortinet.com/fortiguard/rss/outbreakalert.xml", lang="EN", zone="zd"),
+    dict(id="pan", name="Palo Alto Networks", url="https://security.paloaltonetworks.com/rss.xml", lang="EN", zone="zd"),
 ]
 STATUS = [  # météo Cloud & SaaS : flux publics d'état de service
     dict(id="m365", name="Microsoft 365", url="https://status.cloud.microsoft/", kind="m365", feed="https://status.cloud.microsoft/api/feed/mac"),
@@ -85,6 +91,8 @@ def plain(h, n=0):
 
 def zone(f):
     u = f["url"]
+    if f.get("zone"):
+        return f["zone"]
     if "cert.ssi.gouv.fr" in u:
         return "alerte" if "/alerte" in u else "cti" if "/cti" in u else "fr" if "/actualite" in u else "avis"
     if "frenchbreaches" in f["url"]:
@@ -117,10 +125,10 @@ def parse_feed(xml, f):
         cats = [(c.text or c.get("term") or "").strip() for c in n if c.tag.split("}")[-1] == "category"]
         rel = next((c.lower() for c in cats if c.lower() in ("confirmed", "credible")), "") if z == "leak" else ""
         out.append(dict(id=f"{f['id']}|{guid or title}", fid=f["id"], z=z, title=title, link=link,
-                        sum=plain(tx(n, "encoded", "content", "description", "summary"), 200),
+                        sum=plain(tx(n, "encoded", "content", "description", "summary"), 600 if z == "zd" else 200),
                         ts=ms(tx(n, "pubDate", "published", "updated", "date")), src=f["name"], lang=f["lang"],
                         cats=cats, rel=rel))
-    return out[:60]
+    return out[:150 if z == "zd" else 60]
 
 
 def build_feeds(meta):
@@ -141,7 +149,7 @@ def build_feeds(meta):
             meta["feeds"][f["id"]] = dict(ok=err is None, n=len(it), err=err or "")
             items += it
     items.sort(key=lambda a: a["ts"], reverse=True)
-    return dict(items=items[:500])
+    return dict(items=items[:800])
 
 
 def build_kev():
