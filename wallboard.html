@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src https:; img-src data:">
+<title>Cyber mission control · Situation</title>
+<style>
+:root{--bg:#040a13;--p:#0d1b2d;--p2:#142a45;--b:#2f4d70;--t:#f6faff;--m:#c3d2e4;--ok:#35e08e;--y:#ffd54a;--h:#ff9a3c;--u:#ff5252;--a:#4fc3f7;--v:#b794ff}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+html{font-size:16px}
+body{background:#050c16;background:radial-gradient(1400px 800px at 12% -20%,#123453 0%,var(--bg) 62%);color:var(--t);font:500 1.1rem/1.3 "Segoe UI","Roboto","Helvetica Neue",Arial,sans-serif;font-variant-numeric:tabular-nums}
+body.idle{cursor:none}
+#app{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;padding:.8rem 1.7rem .8rem}
+header{flex:none;display:flex;align-items:center;justify-content:space-between;height:3.3rem}
+.brand{font-size:1.75rem;font-weight:800;letter-spacing:.05em;white-space:nowrap}.brand small{font-size:1.1rem;font-weight:500;letter-spacing:0;color:var(--m);margin-left:1rem}
+.hr{display:flex;align-items:center;white-space:nowrap}
+.hr>*{margin-left:1.6rem}
+#upd{font-size:1.1rem;color:var(--m)}#upd.old{color:var(--h);font-weight:700}
+.live{display:inline-block;width:.8rem;height:.8rem;border-radius:50%;background:var(--ok);margin-right:.5rem;vertical-align:middle}.live.old{background:var(--h)}
+#clock{font-size:2.5rem;font-weight:700;line-height:1}
+#grid{flex:1 1 0;min-height:0;display:grid;grid-template-columns:.88fr 1fr 1fr 1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr);grid-gap:.85rem;margin-top:.5rem}
+#c-vig{grid-row:1 / 3;grid-column:1}
+.card{background:#102238;background:linear-gradient(180deg,var(--p2),var(--p));border:1px solid var(--b);border-radius:.9rem;padding:.7rem 1.1rem .8rem;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.card>*{flex:none}
+.h{font-size:1.15rem;font-weight:800;letter-spacing:.06em;color:var(--m);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.big{font-size:4.6rem;font-weight:800;line-height:1}
+.r2{display:flex;align-items:flex-end;margin-top:.2rem}.r2 .sub{margin-left:.9rem;padding-bottom:.45rem}
+.sub{color:var(--m);font-size:1.15rem;line-height:1.2}
+.cap{color:var(--m);font-size:1rem;margin-top:.35rem}
+.chart{flex:1 1 0 !important;min-height:0;position:relative;margin-top:.3rem}
+.chart svg{position:absolute;top:0;left:0;width:100%;height:100%}
+.ok{color:var(--ok)}.y{color:var(--y)}.o{color:var(--h)}.r{color:var(--u)}
+/* vigilance */
+#c-vig{padding-bottom:.9rem}
+.gwrap{flex:none;width:92%;margin:.5rem auto 0}.gwrap svg{display:block;width:100%;height:auto}
+.lvl{font-size:3.9rem;font-weight:900;text-align:center;line-height:1;margin-top:-.2rem;letter-spacing:.07em}
+.comps{margin-top:.8rem;flex:1 1 0;min-height:0;display:flex;flex-direction:column;justify-content:space-evenly}
+.cr{display:flex;align-items:center;padding:.5rem 0;border-top:1px solid var(--b)}
+.cr i{flex:none;width:1.3rem;height:1.3rem;border-radius:50%;margin-right:.8rem}
+.cr b{flex:none;font-size:2.1rem;min-width:3.2rem;line-height:1}
+.cr span{font-size:1.1rem;line-height:1.15}.cr small{display:block;color:var(--m);font-size:1rem}
+.off{display:flex;margin-top:auto}
+.off div{flex:1;text-align:center;background:#0a1626;border:1px solid var(--b);border-radius:.7rem;padding:.4rem .2rem;margin-left:.5rem}.off div:first-child{margin-left:0}
+.off b{display:block;font-size:2rem;line-height:1}.off small{font-size:.95rem;color:var(--m)}
+/* graphiques */
+.dn{display:flex;align-items:center;margin-top:.4rem}.dn>svg{flex:none;width:9.4rem;height:9.4rem}
+.lg{margin-left:1rem;font-size:1.1rem;flex:1;min-width:0}.lg div{display:flex;align-items:center;margin:.22rem 0;white-space:nowrap}.lg i{flex:none;width:1rem;height:1rem;border-radius:.25rem;margin-right:.55rem}.lg b{margin-left:auto;padding-left:.6rem;font-size:1.25rem}
+.pr{display:flex;align-items:center;padding:.4rem 0;border-top:1px solid var(--b)}
+.bd{flex:none;min-width:3.9rem;text-align:center;border-radius:.6rem;padding:.3rem .1rem;font-weight:900;font-size:1.55rem;color:#06101c;margin-right:.8rem}
+.pr b{font-size:1.15rem;display:block;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pr>div{min-width:0}
+.tg{font-size:.95rem;color:var(--m);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tg em{font-style:normal;color:#ffb4b4;font-weight:700}
+/* cloud */
+.cl{display:flex;align-items:center;padding:.38rem 0;border-top:1px solid var(--b)}.cl:first-of-type{border-top:0}
+.cl .rg{flex:none;width:3.6rem;height:3.6rem}.cl .rg svg{width:100%;height:100%}
+.cl .nm{flex:none;width:8.6rem;margin-left:.8rem;line-height:1.15}.cl .nm b{display:block;font-size:1.3rem}.cl .nm span{font-size:1.05rem;font-weight:700}
+.cl .sp{flex:1;min-width:0;margin-left:.6rem}.cl .sp svg{display:block;width:100%;height:1.55rem}.cl .sp small{display:block;font-size:.95rem;color:var(--m);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.15rem}
+/* fuites */
+.lk{padding:.34rem 0;border-top:1px solid var(--b)}.lk:first-of-type{border-top:0}.lk b{display:block;font-size:1.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lk small{font-size:.98rem;color:var(--m)}
+.tag{font-size:.9rem;font-weight:800;border-radius:.35rem;padding:.02rem .45rem;margin-left:.5rem;border:1px solid currentColor}
+.hb{display:flex;align-items:center;font-size:1.1rem;margin:.28rem 0}.hb span:first-child{flex:none;width:8.4rem}.hb div{flex:1;margin:0 .6rem}.hb i{display:block;height:.95rem;border-radius:.3rem}.hb span:last-child{flex:none;width:2.2rem;text-align:right;font-weight:700}
+.wait{align-items:center;justify-content:center;font-size:2rem;color:var(--m);text-align:center}
+/* bandeau */
+#brk{flex:none;margin-top:.8rem;height:6.5rem;display:flex;border-radius:.9rem;overflow:hidden;border:1px solid var(--b);background:#0a1524}
+#brk .lb{flex:none;width:15.5rem;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:2rem;letter-spacing:.07em;color:#fff;text-align:center;line-height:1.05}
+#brk .lb small{font-size:1rem;font-weight:700;letter-spacing:.03em;margin-top:.25rem;opacity:.95}
+.lb.s3{background:#d82b2b}.lb.s2{background:#d96a0a}.lb.s1{background:#1b6fa8}
+.lb .dt{display:inline-block;width:.9rem;height:.9rem;border-radius:50%;background:#fff;margin-right:.5rem;vertical-align:middle}.lb.s3 .dt{animation:pulse 1.1s infinite}
+#brk .tx{flex:1;min-width:0;padding:.5rem 1.5rem;display:flex;flex-direction:column;justify-content:center;transition:opacity .45s}
+#brk .tt{font-size:2.15rem;font-weight:800;line-height:1.13;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#brk .sr{font-size:1.2rem;color:var(--m);margin-top:.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#brk .sr b{color:var(--a)}
+#brk .ct{flex:none;width:7rem;display:flex;align-items:center;justify-content:center;font-size:1.35rem;color:var(--m);border-left:1px solid var(--b)}
+#brk.s3{border-color:var(--u);box-shadow:0 0 .9rem rgba(255,82,82,.45)}
+@keyframes pulse{50%{opacity:.35}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">CYBER MISSION CONTROL<small>Situation en temps réel · France</small></div>
+    <div class="hr"><span id="upd"><span class="live" id="live"></span><span id="updt">chargement…</span></span><b id="clock"></b></div>
+  </header>
+  <div id="grid"></div>
+  <div id="brk"><div class="lb s1" id="blb"></div><div class="tx" id="btx"></div><div class="ct" id="bct"></div></div>
+</div>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const N = (n) => Math.round(n).toLocaleString("fr-FR"), DAY = 864e5, HR = 36e5;
+const P = new URLSearchParams(location.search);
+let BASE = P.get("base") || "https://raw.githubusercontent.com/Woualy/kev-dashboard/data/";
+if (!/^https:\/\//.test(BASE)) BASE = "https://raw.githubusercontent.com/Woualy/kev-dashboard/data/";
+if (!BASE.endsWith("/")) BASE += "/";
+const FILES = ["meta", "feeds", "kev", "cve", "history", "status", "ransom"], OPT = ["history", "status", "ransom"], BSEC = Math.max(5, +P.get("t") || 9);
+const C = { ok: "#35e08e", y: "#ffd54a", h: "#ff9a3c", u: "#ff5252", a: "#4fc3f7", v: "#b794ff", g: "#6f819a" };
+const LV = [{ n: "NORMAL", c: C.ok, k: "ok" }, { n: "SOUTENU", c: C.y, k: "y" }, { n: "\xC9LEV\xC9", c: C.h, k: "o" }, { n: "CRITIQUE", c: C.u, k: "r" }];
+const D = {};
+let err = "", bi = 0, blist = [];
+function fit() {
+  document.documentElement.style.fontSize = Math.min(window.innerWidth / 1920, window.innerHeight / 1080) * 16 + "px";
+}
+async function load() {
+  try {
+    const q = "?t=" + Math.floor(Date.now() / 3e5);
+    const r = await Promise.all(FILES.map((f) => fetch(BASE + f + ".json" + q).then((x) => {
+      if (!x.ok) throw Error(f + " : HTTP " + x.status);
+      return x.json();
+    }).catch((e) => OPT.indexOf(f) >= 0 ? null : Promise.reject(e))));
+    FILES.forEach((f, i) => {
+      D[f] = r[i];
+    });
+    err = "";
+  } catch (e) {
+    err = e.message;
+  }
+  build();
+}
+const ago = (ts) => {
+  const m = Math.max(0, Math.round((Date.now() - ts) / 6e4));
+  return m < 60 ? "il y a " + m + " min" : m < 1440 ? "il y a " + Math.round(m / 60) + " h" : "il y a " + Math.round(m / 1440) + " j";
+};
+const dkey = (ts) => new Date(ts).toLocaleDateString("fr-CA");
+function perDay(list, n) {
+  const keys = [], m = {};
+  for (let k = n - 1; k >= 0; k--) {
+    const x = dkey(Date.now() - k * DAY);
+    keys.push(x);
+    m[x] = 0;
+  }
+  list.forEach((t) => {
+    const x = dkey(t);
+    if (x in m) m[x]++;
+  });
+  return keys.map((x) => m[x]);
+}
+const dlabels = (n) => {
+  const o = [];
+  for (let k = n - 1; k >= 0; k--) o.push(new Date(Date.now() - k * DAY).toLocaleDateString("fr-FR", { weekday: "short" }).slice(0, 3));
+  return o;
+};
+function vol(a) {
+  const t = a.title + " " + (a.sum || "");
+  let v = 0, m;
+  const r1 = /(\d+(?:[.,]\d+)?)\s?millions?/gi, r2 = /\d{1,3}(?:[\s\u00a0\u202f]\d{3})+/g;
+  while (m = r1.exec(t)) v = Math.max(v, parseFloat(m[1].replace(",", ".")) * 1e6);
+  while (m = r2.exec(t)) v = Math.max(v, +m[0].replace(/\D/g, ""));
+  return v;
+}
+const RU = /(^|[^a-zà-ÿ0-9])(critique|critical|zero-?days?|0-?days?|activement exploit[a-zà-ÿ]*|actively exploited|ransomware|rançongiciel|lockbit|urgence)($|[^a-zà-ÿ0-9])/i;
+function sev(a) {
+  const t = a.title + " " + (a.sum || "");
+  if (a.z === "alerte" || RU.test(t) || a.z === "leak" && vol(a) >= 1e6) return 3;
+  if (a.z === "leak" && a.rel === "confirmed") return 2;
+  if (/(?:\brce\b|cve-\d{4}-\d+|vulnérabilit|fuite|breach|compromission)/i.test(t)) return 2;
+  return 1;
+}
+const items = () => (D.feeds && D.feeds.items || []).filter((a) => a.z !== "zd");
+const TYPES = [["Vuln\xE9rabilit\xE9s", /vulnérab|vulnerab|cve-\d|zero-?day|0-?day|exploit|\brce\b|correctif|patch/i], ["Fuites de donn\xE9es", /fuite|breach|leak|données? (?:personnelles|volées)|exfiltr/i], ["DDoS", /ddos|déni de service/i], ["Phishing, arnaques", /phishing|hameçonnage|arnaque|smishing|usurpation|escroquerie/i], ["Ransomware", /ransomware|rançongiciel|lockbit|extorsion/i], ["Malware, botnets", /malware|botnet|trojan|stealer|backdoor|logiciel malveillant/i]];
+function levels() {
+  const it = items(), now = Date.now(), w = (a) => now - a.ts < 7 * DAY, kv = (D.kev && D.kev.v || []).filter((x) => now - Date.parse(x.d) < 7 * DAY);
+  const al = it.filter((a) => a.z === "alerte" && w(a)).length, lk = it.filter((a) => a.z === "leak" && w(a)).length, rs = (D.ransom && D.ransom.items || []).filter((x) => now - x.d < 7 * DAY).length;
+  const sv = D.status && D.status.services || [], out = sv.filter((x) => x.state === "out").length, deg = sv.filter((x) => x.state === "deg").length, fr = lk + rs;
+  const c = [
+    { k: "Alertes officielles", v: al, u: "alerte" + (al > 1 ? "s" : "") + " CERT-FR \xB7 7 j", i: al === 0 ? 0 : al === 1 ? 1 : al < 4 ? 2 : 3 },
+    { k: "Failles exploit\xE9es", v: kv.length, u: "ajouts catalogue CISA \xB7 7 j", i: kv.length < 8 ? 0 : kv.length < 15 ? 1 : kv.length < 25 ? 2 : 3 },
+    { k: "Fuites et ran\xE7ongiciels", v: fr, u: "cas en France \xB7 7 j", i: fr < 10 ? 0 : fr < 20 ? 1 : fr < 35 ? 2 : 3 },
+    { k: "Cloud et SaaS", v: out + deg, u: out + deg ? "service" + (out + deg > 1 ? "s" : "") + " perturb\xE9" + (out + deg > 1 ? "s" : "") : "tous op\xE9rationnels", i: out ? 3 : deg >= 2 ? 2 : deg ? 1 : 0 }
+  ];
+  let L = Math.round(c.reduce((s, x) => s + x.i, 0) / c.length);
+  if (out) L = Math.max(L, 2);
+  return { c, L, al, kev: kv.length, kevR: kv.filter((x) => x.r).length };
+}
+const pt = (cx, cy, r, a) => (cx + r * Math.cos(a)).toFixed(1) + " " + (cy - r * Math.sin(a)).toFixed(1);
+function gauge(L) {
+  const seg = LV.map((x, i) => '<path d="M'.concat(pt(200, 200, 150, Math.PI - i * Math.PI / 4 - 0.03), " A150 150 0 0 1 ").concat(pt(200, 200, 150, Math.PI - (i + 1) * Math.PI / 4 + 0.03), '" stroke="').concat(x.c, '" stroke-width="38" fill="none" opacity="').concat(i === L ? 1 : 0.2, '"/>')).join("");
+  const a = Math.PI - (L + 0.5) * Math.PI / 4;
+  return '<svg viewBox="0 0 400 215" role="img" aria-label="Niveau '.concat(LV[L].n, '">').concat(seg, '<line x1="200" y1="200" x2="').concat((200 + 120 * Math.cos(a)).toFixed(1), '" y2="').concat((200 - 120 * Math.sin(a)).toFixed(1), '" stroke="#fff" stroke-width="8" stroke-linecap="round"/><circle cx="200" cy="200" r="14" fill="#fff"/></svg>');
+}
+function ring(p, c, txt) {
+  const r = 42, L = 2 * Math.PI * r;
+  return '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="'.concat(r, '" fill="none" stroke="#27405e" stroke-width="12"/><circle cx="50" cy="50" r="').concat(r, '" fill="none" stroke="').concat(c, '" stroke-width="12" stroke-linecap="round" stroke-dasharray="').concat((Math.max(0, Math.min(1, p)) * L).toFixed(1), " ").concat(L.toFixed(1), '" transform="rotate(-90 50 50)"/><text x="50" y="60" text-anchor="middle" font-size="30" font-weight="800" fill="#f6faff">').concat(txt, "</text></svg>");
+}
+function donut(parts, ctr, sub) {
+  const r = 38, L = 2 * Math.PI * r, tot = parts.reduce((s, p) => s + p.v, 0) || 1;
+  let acc = 0;
+  const arcs = parts.filter((p) => p.v > 0).map((p) => {
+    const l = Math.max(p.v / tot * L - 0.8, 0.1), o = acc;
+    acc += p.v / tot * L;
+    return '<circle cx="50" cy="50" r="'.concat(r, '" fill="none" stroke="').concat(p.c, '" stroke-width="17" stroke-dasharray="').concat(l.toFixed(2), " ").concat((L - l).toFixed(2), '" stroke-dashoffset="').concat((-o).toFixed(2), '" transform="rotate(-90 50 50)"/>');
+  }).join("");
+  return '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="'.concat(r, '" fill="none" stroke="#1a3050" stroke-width="17"/>').concat(arcs, '<text x="50" y="52" text-anchor="middle" font-size="19" font-weight="800" fill="#f6faff">').concat(ctr, '</text><text x="50" y="65" text-anchor="middle" font-size="8" fill="#c3d2e4">').concat(esc(sub || ""), "</text></svg>");
+}
+function bars(vals, o) {
+  o = o || {};
+  const W = o.w || 440, H = o.h || 200, n = vals.length, mx = Math.max.apply(null, vals.concat([1])), bw = W / n, gap = Math.min(6, bw * 0.22), c = o.c || C.a, bh = (v) => v > 0 ? Math.max(v / mx * (H - 58), 4) : 0;
+  let s = vals.map((v, i) => '<rect x="'.concat((i * bw + gap / 2).toFixed(1), '" y="').concat((H - 28 - bh(v)).toFixed(1), '" width="').concat((bw - gap).toFixed(1), '" height="').concat(bh(v).toFixed(1), '" rx="3" fill="').concat(c, '" opacity="').concat(i === n - 1 ? 1 : 0.65, '"/>')).join("");
+  const mi = vals.indexOf(Math.max.apply(null, vals)), keys = mi === n - 1 ? [n - 1] : [mi, n - 1];
+  keys.forEach((i) => {
+    if (vals[i] > 0) s += '<text x="'.concat(Math.min(Math.max(i * bw + bw / 2, 24), W - 24).toFixed(1), '" y="').concat((H - 34 - bh(vals[i])).toFixed(1), '" text-anchor="middle" font-size="21" font-weight="800" fill="#f6faff">').concat(N(vals[i]), "</text>");
+  });
+  (o.labels || []).forEach((l, i) => {
+    if (l) s += '<text x="'.concat((i * bw + bw / 2).toFixed(1), '" y="').concat(H - 6, '" text-anchor="middle" font-size="18" fill="#c3d2e4">').concat(esc(l), "</text>");
+  });
+  return '<svg viewBox="0 0 '.concat(W, " ").concat(H, '" role="img">').concat(s, "</svg>");
+}
+const SC_ = [C.ok, C.h, C.u, C.g];
+function strip(h) {
+  const a = (h || []).slice(-48), pad = 48 - a.length;
+  let o = "";
+  for (let i = 0; i < 48; i++) {
+    const x = i < pad ? null : a[i - pad];
+    o += '<rect x="'.concat(i * 6, '" y="0" width="5" height="24" rx="1.5" fill="').concat(x ? SC_[x[1]] : "#27405e", '"/>');
+  }
+  return '<svg viewBox="0 0 288 24" preserveAspectRatio="none">'.concat(o, "</svg>");
+}
+const cup = (h) => {
+  const xs = (h || []).filter((x) => Date.now() - x[0] < 7 * DAY && x[1] < 3);
+  return xs.length ? xs.filter((x) => x[1] === 0).length / xs.length : null;
+};
+const hbars = (rows, c) => {
+  const m = Math.max.apply(null, rows.map((r) => r[1]).concat([1]));
+  return rows.map((r) => '<div class="hb"><span>'.concat(esc(r[0]), '</span><div><i style="width:').concat(Math.max(r[1] / m * 100, 3), "%;background:").concat(c, '"></i></div><span>').concat(r[1], "</span></div>")).join("");
+};
+function cVig() {
+  const v = levels(), lv = LV[v.L], w = items().filter((a) => Date.now() - a.ts < 7 * DAY), n = (z) => w.filter((a) => a.z === z).length;
+  return '<div class="h">Niveau de vigilance \xB7 France</div><div class="gwrap">'.concat(gauge(v.L), '</div><div class="lvl ').concat(lv.k, '">').concat(lv.n, '</div>\n  <div class="comps">').concat(v.c.map((x) => '<div class="cr"><i style="background:'.concat(LV[x.i].c, '"></i><b>').concat(x.v, "</b><span>").concat(x.k, "<small>").concat(x.u, "</small></span></div>")).join(""), '</div>\n  <div class="off" style="margin-top:.6rem"><div><b class="r">').concat(n("alerte"), '</b><small>Alertes CERT-FR</small></div><div><b class="o">').concat(n("avis"), '</b><small>Avis CERT-FR</small></div><div><b style="color:').concat(C.v, '">').concat(n("cti"), '</b><small>Rapports menace</small></div></div>\n  <div class="cap">Indicateur indicatif \xB7 sources publiques \xB7 7 jours</div>');
+}
+function cCve() {
+  const gh = D.cve && D.cve.gh || {};
+  return '<div class="h">Nouveaux CVE \xB7 failles publi\xE9es</div><div class="r2"><div class="big">'.concat(N(gh.n24 || 0), '</div><div class="sub">en 24 h<br>dans le monde</div></div>\n  <div class="chart">').concat(gh.hours ? bars(gh.hours, { labels: gh.hours.map((_, i) => i % 12 === 0 ? "-" + (47 - i) + " h" : ""), c: C.a }) : "", '</div><div class="cap">Publications par heure \xB7 48 derni\xE8res heures (').concat(N(gh.n48 || 0), ")</div>");
+}
+function cSev() {
+  const rc = Object.values(D.cve && D.cve.recs || {}).filter((x) => Date.now() - x.ts < 2 * DAY), b = [0, 0, 0, 0, 0];
+  rc.forEach((x) => {
+    b[x.s >= 9 ? 0 : x.s >= 7 ? 1 : x.s >= 4 ? 2 : x.s > 0 ? 3 : 4]++;
+  });
+  const parts = [{ v: b[0], c: C.u, l: "Critique \u2265 9" }, { v: b[1], c: C.h, l: "Haute 7 \u2013 8,9" }, { v: b[2], c: C.y, l: "Moyenne 4 \u2013 6,9" }, { v: b[3], c: C.ok, l: "Faible < 4" }, { v: b[4], c: C.g, l: "Non \xE9valu\xE9e" }];
+  const top = rc.slice().sort((x, y) => !!y.k - !!x.k || (y.ep == null ? -1 : y.ep) - (x.ep == null ? -1 : x.ep) || y.s - x.s).slice(0, 2), col = (s) => s >= 9 ? C.u : s >= 7 ? C.h : s >= 4 ? C.y : s > 0 ? C.ok : C.g;
+  return '<div class="h">Gravit\xE9 des CVE \xB7 48 h</div><div class="dn">'.concat(donut(parts, N(rc.length), "CVE analys\xE9s"), '<div class="lg">').concat(parts.map((p) => '<div><i style="background:'.concat(p.c, '"></i>').concat(p.l, "<b>").concat(p.v, "</b></div>")).join(""), '</div></div>\n  <div class="h" style="margin-top:.7rem">\xC0 traiter en priorit\xE9</div>').concat(top.length ? top.map((x) => '<div class="pr"><span class="bd" style="background:'.concat(col(x.s), '">').concat(x.s ? x.s.toFixed(1) : "\u2014", "</span><div><b>").concat(esc((x.v + " " + x.p).trim() || x.id), '</b><div class="tg">').concat(x.k ? "<em>Exploit\xE9e</em> \xB7 " : "").concat(x.ep >= 0.01 ? "risque " + (x.ep * 100).toFixed(x.ep < 0.1 ? 1 : 0).replace(".", ",") + " %" : esc(x.id), "</div></div></div>")).join("") : '<div class="sub">En attente des donn\xE9es d\xE9taill\xE9es.</div>');
+}
+function cKev() {
+  const v = levels(), d = perDay((D.kev && D.kev.v || []).map((x) => Date.parse(x.d)), 14);
+  return '<div class="h">Failles exploit\xE9es par des pirates</div><div class="r2"><div class="big">'.concat(v.kev, '</div><div class="sub">en 7 jours<br>dont <b class="r">').concat(v.kevR, "</b> li\xE9e").concat(v.kevR > 1 ? "s" : "", ' aux ran\xE7ongiciels</div></div>\n  <div class="chart">').concat(bars(d, { labels: dlabels(14).map((l, i) => i % 2 ? "" : l), c: C.u }), '</div><div class="cap">Ajouts par jour au catalogue CISA \xB7 14 jours \xB7 ').concat(N(D.kev && D.kev.total || 0), " au total</div>");
+}
+function cCloud() {
+  const sv = D.status && D.status.services || [], ST = { ok: "Op\xE9rationnel", deg: "Perturb\xE9", out: "En panne", unknown: "Inconnu" }, CL = { ok: C.ok, deg: C.h, out: C.u, unknown: C.g };
+  if (!sv.length) return '<div class="h">Cloud et SaaS</div><div class="wait" style="flex:1">Statut des services indisponible</div>';
+  const bad = sv.filter((x) => x.state === "deg" || x.state === "out").length;
+  return '<div class="h">Cloud et SaaS \xB7 <span class="'.concat(bad ? "o" : "ok", '">').concat(bad ? bad + " perturb\xE9" + (bad > 1 ? "s" : "") : "tout est op\xE9rationnel", "</span></div>") + sv.map((x) => {
+    const s = ST[x.state] ? x.state : "unknown", u = cup(x.hist);
+    return '<div class="cl"><div class="rg">'.concat(ring(u === null ? 0 : u, CL[s], u === null ? "\u2014" : Math.round(u * 100) + "%"), '</div><div class="nm"><b>').concat(esc(x.name), '</b><span style="color:').concat(CL[s], '">').concat(ST[s], '</span></div><div class="sp">').concat(strip(x.hist), "<small>").concat(s === "ok" ? "24 derni\xE8res heures" : esc(x.note || ""), "</small></div></div>");
+  }).join("") + '<div class="cap" style="margin-top:auto">Anneau : disponibilit\xE9 sur 7 jours \xB7 Barre : 24 h</div>';
+}
+function cRansom() {
+  const now = Date.now(), R = (D.ransom && D.ransom.items || []).filter((x) => now - x.d < 30 * DAY), rd = perDay(R.map((x) => x.d), 30), gc = {};
+  R.forEach((x) => {
+    const g = x.g || "inconnu";
+    gc[g] = (gc[g] || 0) + 1;
+  });
+  const gs = Object.keys(gc).map((k) => [k, gc[k]]).sort((a, b) => b[1] - a[1]), pal = [C.u, C.h, C.y, C.v, C.a], parts = gs.slice(0, 4).map((x, i) => ({ v: x[1], c: pal[i], l: x[0] })), rest = gs.slice(4).reduce((s, x) => s + x[1], 0);
+  if (rest) parts.push({ v: rest, c: C.g, l: "Autres" });
+  return '<div class="h">Ran\xE7ongiciels en France \xB7 30 j</div><div class="r2"><div class="big">'.concat(R.length, '</div><div class="sub">victimes revendiqu\xE9es<br>par des groupes criminels</div></div>\n  <div class="chart">').concat(bars(rd, { labels: dlabels(30).map((l, i) => i % 6 === 0 ? l : ""), c: C.v, h: 150 }), '</div>\n  <div class="dn" style="margin-top:.2rem">').concat(donut(parts, R.length, "par groupe"), '<div class="lg">').concat(parts.map((p) => '<div><i style="background:'.concat(p.c, '"></i>').concat(esc(p.l), "<b>").concat(p.v, "</b></div>")).join("") || '<div class="sub">Aucune revendication.</div>', "</div></div>");
+}
+function cLeaks() {
+  const it = items(), now = Date.now(), lk = it.filter((a) => a.z === "leak").sort((a, b) => b.ts - a.ts), n30 = lk.filter((a) => now - a.ts < 30 * DAY).length;
+  const w7 = it.filter((a) => a.z !== "int" && now - a.ts < 7 * DAY), tc = TYPES.map(([n, re]) => [n, w7.filter((a) => re.test(a.title + " " + (a.sum || ""))).length]).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  return '<div class="h">Fuites de donn\xE9es \xB7 France</div><div class="r2"><div class="big" style="font-size:3.4rem">'.concat(n30, '</div><div class="sub">en 30 jours</div></div>') + (lk.slice(0, 3).map((a) => {
+    const v = vol(a);
+    return '<div class="lk"><b>'.concat(esc(a.title), "</b><small>").concat(ago(a.ts)).concat(v >= 1e3 ? " \xB7 \u2248 " + N(v) : "").concat(a.rel === "confirmed" ? '<span class="tag ok">confirm\xE9e</span>' : a.rel === "credible" ? '<span class="tag y">cr\xE9dible</span>' : "", "</small></div>");
+  }).join("") || '<div class="sub">Aucune fuite r\xE9cente.</div>') + '<div class="h" style="margin-top:.6rem">Sujets de la semaine</div>' + (w7.length ? hbars(tc, C.a) : "");
+}
+const CARDS = [["c-vig", "", cVig], ["c-cve", "", cCve], ["c-sev", "", cSev], ["c-kev", "", cKev], ["c-cloud", "", cCloud], ["c-rs", "", cRansom], ["c-lk", "", cLeaks]];
+function headlines() {
+  const now = Date.now(), it = items().filter((a) => now - a.ts < 72 * HR && (a.z !== "int" || sev(a) >= 3)).sort((a, b) => b.ts - a.ts);
+  const u = it.filter((a) => sev(a) >= 3), h = it.filter((a) => sev(a) === 2), r = it.filter((a) => sev(a) < 2);
+  return u.slice(0, 5).concat(h.slice(0, 4), r.slice(0, 2));
+}
+function brk(fade) {
+  const l = blist, b = $("#brk"), lb = $("#blb"), tx = $("#btx");
+  if (!l.length) {
+    lb.className = "lb s1";
+    lb.innerHTML = "ACTUALIT\xC9";
+    tx.innerHTML = '<div class="tt">Aucune alerte en cours \xB7 veille active</div>';
+    $("#bct").textContent = "";
+    b.className = "";
+    return;
+  }
+  const a = l[bi % l.length], s = sev(a);
+  const set = () => {
+    lb.className = "lb s" + s;
+    lb.innerHTML = '<div><span class="dt"></span>'.concat(s >= 3 ? "URGENT" : s === 2 ? "IMPORTANT" : "ACTUALIT\xC9", "</div><small>").concat(ago(a.ts), "</small>");
+    tx.innerHTML = '<div class="tt">'.concat(esc(a.title), '</div><div class="sr"><b>').concat(esc(a.src), "</b>").concat(a.z === "alerte" ? " \xB7 alerte officielle" : a.z === "leak" ? " \xB7 fuite de donn\xE9es" : "", "</div>");
+    $("#bct").textContent = bi % l.length + 1 + " / " + l.length;
+    b.className = s >= 3 ? "s3" : "";
+    tx.style.opacity = 1;
+  };
+  if (fade) {
+    tx.style.opacity = 0;
+    setTimeout(set, 450);
+  } else set();
+}
+function build() {
+  const ok = D.feeds && D.kev && D.meta, g = $("#grid");
+  if (!ok) {
+    g.innerHTML = '<div class="card wait" style="grid-column:1 / 5;grid-row:1 / 3">'.concat(err ? "Donn\xE9es indisponibles : " + esc(err) : "Chargement des donn\xE9es\u2026", "</div>");
+    head();
+    return;
+  }
+  g.innerHTML = CARDS.map((c) => {
+    let h;
+    try {
+      h = c[2]();
+    } catch (e) {
+      h = '<div class="wait">Erreur : ' + esc(e.message) + "</div>";
+    }
+    return '<section class="card" id="'.concat(c[0], '">').concat(h, "</section>");
+  }).join("");
+  blist = headlines();
+  if (bi >= blist.length) bi = 0;
+  brk(false);
+  head();
+}
+function head() {
+  const g = D.meta ? Date.parse(D.meta.generatedAt) : 0, old = !g || Date.now() - g > 3 * HR;
+  $("#live").className = "live" + (old ? " old" : "");
+  $("#upd").className = old ? "old" : "";
+  $("#updt").textContent = g ? old ? "donn\xE9es non actualis\xE9es depuis " + Math.round((Date.now() - g) / HR) + " h" : "donn\xE9es de " + new Date(g).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "en attente de donn\xE9es";
+}
+function clock() {
+  $("#clock").textContent = (/* @__PURE__ */ new Date()).toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit" });
+  head();
+}
+window.addEventListener("resize", fit);
+fit();
+setInterval(() => {
+  if (blist.length > 1) {
+    bi = (bi + 1) % blist.length;
+    brk(true);
+  }
+}, BSEC * 1e3);
+setInterval(clock, 5e3);
+setInterval(load, 5 * 6e4);
+setTimeout(() => location.reload(), 6 * HR);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "f" || e.key === "F") {
+    try {
+      document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+    } catch (x) {
+    }
+  } else if (e.key === "ArrowRight" && blist.length) {
+    bi = (bi + 1) % blist.length;
+    brk(false);
+  } else if (e.key === "ArrowLeft" && blist.length) {
+    bi = (bi + blist.length - 1) % blist.length;
+    brk(false);
+  }
+});
+let idle;
+document.addEventListener("mousemove", () => {
+  document.body.classList.remove("idle");
+  clearTimeout(idle);
+  idle = setTimeout(() => document.body.classList.add("idle"), 4e3);
+});
+clock();
+load();
+
+</script>
+</body>
+</html>
