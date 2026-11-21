@@ -1,0 +1,98 @@
+{
+ "generatedAt": "2026-11-21T09:35:18.849952+00:00",
+ "feeds": {
+  "fb": {
+   "ok": true,
+   "n": 60,
+   "err": ""
+  },
+  "1": {
+   "ok": true,
+   "n": 40,
+   "err": ""
+  },
+  "2": {
+   "ok": true,
+   "n": 40,
+   "err": ""
+  },
+  "3": {
+   "ok": true,
+   "n": 10,
+   "err": ""
+  },
+  "8": {
+   "ok": true,
+   "n": 20,
+   "err": ""
+  },
+  "6": {
+   "ok": true,
+   "n": 50,
+   "err": ""
+  },
+  "7": {
+   "ok": true,
+   "n": 15,
+   "err": ""
+  },
+  "cti": {
+   "ok": true,
+   "n": 40,
+   "err": ""
+  },
+  "act": {
+   "ok": true,
+   "n": 40,
+   "err": ""
+  },
+  "enisa": {
+   "ok": false,
+   "n": 0,
+   "err": "HTTP Error 404: Not Found"
+  },
+  "cnil": {
+   "ok": true,
+   "n": 10,
+   "err": ""
+  },
+  "isc": {
+   "ok": true,
+   "n": 10,
+   "err": ""
+  },
+  "zdi": {
+   "ok": true,
+   "n": 150,
+   "err": ""
+  },
+  "cisco": {
+   "ok": true,
+   "n": 50,
+   "err": ""
+  },
+  "fortinet": {
+   "ok": true,
+   "n": 50,
+   "err": ""
+  },
+  "fortioutbreak": {
+   "ok": true,
+   "n": 20,
+   "err": ""
+  },
+  "pan": {
+   "ok": true,
+   "n": 25,
+   "err": ""
+  }
+ },
+ "parts": {
+  "feeds.json": "ok",
+  "kev.json": "ok",
+  "cve.json": "ok",
+  "history.json": "ok",
+  "status.json": "ok",
+  "ransom.json": "ok"
+ }
+}
