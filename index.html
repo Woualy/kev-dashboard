@@ -96,17 +96,23 @@ main[hidden],#vig[hidden]{display:none!important}
 #pg-zd{grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}#pg-zd .kpis,#zctl{grid-column:1/-1}
 @media(min-width:2300px){#pg-zd{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(min-width:2300px) and (min-height:1000px){#pg-zd{grid-template-rows:auto auto minmax(0,1fr)}}
+#entbar{margin:8px 18px 0;padding:9px 16px;border:2px solid var(--u);border-radius:8px;background:#4d0f15;color:#fff;font-size:15px}
+#entbar[hidden]{display:none!important}#entbar b{font-size:16px;margin-right:12px}#entbar a{color:#fff;text-decoration:none;font-weight:600}#entbar a:hover{text-decoration:underline}
+#entbar .it{display:inline-block;margin-right:22px}#entbar .it .sv{margin-right:6px}#entbar small{color:#ffc9c9}
+.tag.e{background:var(--u);color:#fff;border-color:var(--u);font-weight:700}
+[data-a=ent] small{background:var(--u);color:#fff;border-radius:8px;padding:0 6px;margin-left:6px;font-size:11px}[data-a=ent] small:empty{display:none}
 </style>
 </head>
 <body>
 <header>
-  <div class="brand">Cyber mission control<small>Veille France · actualisation automatique toutes les 30 min · build 18/11-b</small></div>
+  <div class="brand">Cyber mission control<small>Veille France · actualisation automatique toutes les 30 min · build 20/11-a</small></div>
   <nav class="tabs" role="tablist" aria-label="Pages"><button role="tab" data-a="page" data-p="veille">Veille</button><button role="tab" data-a="page" data-p="zd" id="tabzd">Zero day<small id="tabzdn"></small></button></nav>
   <div id="iocw"><input id="ioc" type="search" placeholder="IP, domaine, hash, URL, CVE  ( / )" aria-label="Rechercher un indicateur" autocomplete="off"><div id="iocr"></div></div><div id="clock"></div><div id="st"></div>
   <button data-a="refresh" title="Actualiser maintenant" aria-label="Actualiser">⟳</button>
-  <button data-a="readall" title="Marquer toutes les dépêches comme lues">Tout lu</button><button data-a="net">Réseau</button><button data-a="feeds">Flux</button><button data-a="csv">Export CSV</button>
+  <button data-a="ent" title="Entités surveillées : ton organisation, tes domaines, tes fournisseurs">Entités<small id="entn"></small></button><button data-a="readall" title="Marquer toutes les dépêches comme lues">Tout lu</button><button data-a="net">Réseau</button><button data-a="feeds">Flux</button><button data-a="csv">Export CSV</button>
 </header>
 <div id="vig"></div>
+<div id="entbar" hidden></div>
 <main id="pg-veille">
   <div class="kpis" id="kpis"></div>
   <section id="p-cert"></section><section id="p-leak"></section><section id="p-kev"></section>
@@ -154,7 +160,7 @@ function loadFeeds(){let f=store.get('cv_feeds',null)||DEF.slice();f=f.map(x=>/c
 const S={feeds:loadFeeds(),items:store.get('cv_cache',[]),st:{},read:new Set(store.get('cv_read',[])),kev:store.get('cv_kev',null),cve:store.get('cv_cve',null),
  watch:store.get('cv_watch','Microsoft, Fortinet, Citrix, Cisco, Ivanti, VMware, Palo Alto, Veeam'),gh:store.get('cv_gh',null),rec:store.get('cv_rec',{}),ghf:store.get('cv_ghf',true),gerr:'',kerr:'',cerr:'',map:'',loading:false,last:store.get('cv_last',0),timer:1800};
 S.items.forEach(a=>{if(!a.z){const f=S.feeds.find(x=>x.id===a.fid);a.z=f?zone(f):'int'}}); // anciens caches sans zone
-S.fail={};S.base=store.get('cv_base','https://raw.githubusercontent.com/Woualy/kev-dashboard/data/');S.srv=null;S.zd=store.get('cv_zd',[]);S.pg=store.get('cv_pg','veille');S.zf=Object.assign({zero:false,wo:false,hi:false,grp:true},store.get('cv_zf',{}));S.zf.q='';S.zopen=new Set();S.cloud=store.get('cv_cl',null);S.ransom=store.get('cv_rs',null);S.wo=store.get('cv_wo',false);
+S.fail={};S.base=store.get('cv_base','https://raw.githubusercontent.com/Woualy/kev-dashboard/data/');S.ent=store.get('cv_ent','');S.srv=null;S.zd=store.get('cv_zd',[]);S.pg=store.get('cv_pg','veille');S.zf=Object.assign({zero:false,wo:false,hi:false,grp:true},store.get('cv_zf',{}));S.zf.q='';S.zopen=new Set();S.cloud=store.get('cv_cl',null);S.ransom=store.get('cv_rs',null);S.wo=store.get('cv_wo',false);
 const saveFeeds=()=>store.set('cv_feeds',S.feeds),saveRead=()=>store.set('cv_read',[...S.read].slice(-3000));
 
 const ROUTES=[['direct',u=>u],['codetabs',u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u)],['corsproxy',u=>'https://corsproxy.io/?'+encodeURIComponent(u)],['allorigins',u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)]];
@@ -291,6 +297,23 @@ const watchRe=()=>{const w=S.watch.split(/[,;]/).map(s=>s.trim()).filter(Boolean
 const kevRecent=d=>(S.kev?.v||[]).filter(x=>Date.now()-Date.parse(x.d)<d*DAY);
 const kevHit=x=>{const r=watchRe();return r&&r.test(x.v+' '+x.p)};
 const noSrv=()=>S.srv?'<div class="empty">Pas encore publié par le serveur : mets à jour <b>scripts/build_data.py</b> dans le dépôt, puis relance l’Action.</div>':'<div class="empty">Données serveur requises (indisponible en mode direct).</div>';
+const nrm=s=>String(s==null?'':s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+let _es=null,_el=[];
+function ents(){if(_es!==S.ent){_es=S.ent;_el=S.ent.split(/[,;\n]/).map(x=>x.trim()).filter(x=>x.length>=3).slice(0,40).map(x=>({raw:x,re:new RegExp('(?:^|[^a-z0-9])'+nrm(x).replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s+')+'(?:$|[^a-z0-9])')}))}return _el}
+function entMatch(t){const n=nrm(t),l=ents();for(let i=0;i<l.length;i++)if(l[i].re.test(n))return l[i].raw;return ''}
+const entHit=a=>!!entMatch(a.title+' '+(a.sum||''));
+function entMatches(){
+  if(!ents().length)return [];const now=Date.now(),o=[];
+  S.items.forEach(a=>{if(now-a.ts>(a.z==='leak'?30:14)*DAY)return;const m=entMatch(a.title+' '+(a.sum||''));if(m)o.push({t:a.z==='leak'?'FUITE':'ACTUALITÉ',k:a.z==='leak'?2:1,ts:a.ts,label:a.title,src:a.src,link:a.link,ent:m})});
+  ((S.ransom&&S.ransom.items)||[]).forEach(x=>{if(now-x.d>60*DAY)return;const m=entMatch(x.v);if(m)o.push({t:'RANÇONGICIEL',k:3,ts:x.d,label:x.v+(x.g?' · groupe '+x.g:''),src:'ransomware.live',link:'https://www.ransomware.live/map/FR',ent:m})});
+  return o.sort((a,b)=>b.k-a.k||b.ts-a.ts);
+}
+function renderEnt(){
+  const m=entMatches(),b=$('#entbar'),n=$('#entn');if(n)n.textContent=m.length?String(m.length):'';
+  if(!b)return;if(!m.length||S.pg==='zd'){b.hidden=true;b.innerHTML='';return}
+  b.hidden=false;
+  b.innerHTML=`<b>⚠ ENTITÉS SURVEILLÉES · ${m.length} correspondance${m.length>1?'s':''}</b>`+m.slice(0,3).map(x=>`<span class="it"><span class="sv u">${x.t}</span><a href="${esc(safeUrl(x.link))}" target="_blank" rel="noopener noreferrer">${esc(x.label)}</a> <small>${esc(x.src)} · ${fmt(x.ts)} · « ${esc(x.ent)} »</small></span>`).join('')+(m.length>3?`<a href="#" data-a="ent">+ ${m.length-3} autre${m.length>4?'s':''}</a>`:'');
+}
 const itemHit=a=>{const r=watchRe();return !!r&&r.test(a.title+' '+a.sum)};
 const dueBadge=x=>{const d=Date.parse(x.due);if(isNaN(d))return '';const t=new Date();t.setHours(0,0,0,0);const n=Math.round((d-t.getTime())/DAY);
   return n<0?` <span class="sv u" title="Échéance de correction CISA dépassée">ÉCHÉANCE DÉPASSÉE (${-n} j)</span>`:n<=7?` <span class="sv h">ÉCHÉANCE ${n===0?'AUJOURD’HUI':'J-'+n}</span>`:''};
@@ -308,13 +331,13 @@ function vigilance(){
 /* ---- Rendu ---- */
 function rows(list,n,extra){
   if(!list.length)return '<div class="empty">Aucun élément pour le moment.</div>';
-  return '<div class="list">'+list.slice(0,n).map(a=>`<div class="row ${S.read.has(a.id)?'rd':''}"><span class="sv ${SEV[a.sev][0]}">${a.sev}</span><a href="${esc(a.link)}" target="_blank" rel="noopener noreferrer" data-a="open" data-id="${esc(a.id)}">${esc(a.title)}</a><div class="meta">${esc(a.src)} · ${fmt(a.ts)}${extra?extra(a):''}${itemHit(a)?' <span class="tag w">PÉRIMÈTRE</span>':''}</div></div>`).join('')+'</div>';
+  return '<div class="list">'+list.slice(0,n).map(a=>`<div class="row ${S.read.has(a.id)?'rd':''}"><span class="sv ${SEV[a.sev][0]}">${a.sev}</span><a href="${esc(a.link)}" target="_blank" rel="noopener noreferrer" data-a="open" data-id="${esc(a.id)}">${esc(a.title)}</a><div class="meta">${esc(a.src)} · ${fmt(a.ts)}${extra?extra(a):''}${entHit(a)?' <span class="tag e">ENTITÉ</span>':''}${itemHit(a)?' <span class="tag w">PÉRIMÈTRE</span>':''}</div></div>`).join('')+'</div>';
 }
 function bars(vals,labels,cur,h=70){
   const w=300,mx=Math.max(...vals,1),bw=w/vals.length;
   return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="Histogramme">`+vals.map((v,i)=>{const bh=Math.max(1,v/mx*(h-4));return `<rect class="bar ${i===cur?'cur':''}" x="${(i*bw+.5).toFixed(1)}" y="${(h-bh).toFixed(1)}" width="${Math.max(bw-1,1).toFixed(1)}" height="${bh.toFixed(1)}"><title>${esc(labels[i])} : ${v.toLocaleString('fr-FR')}</title></rect>`}).join('')+'</svg>';
 }
-function render(){hdr();vig();kpis();panels();zdRender()}
+function render(){hdr();vig();kpis();panels();zdRender();renderEnt()}
 function vig(){
   const v=vigilance(),lc=Math.max(0,...[...zi('alerte'),...zi('avis')].map(a=>a.ts)),age=lc?Math.floor((Date.now()-lc)/DAY):null;
   const warn=(age===null||age>=3)?` <span class="err">· ⚠ CERT-FR non actualisé${age===null?'':' depuis '+age+' j'} : niveau potentiellement sous-estimé</span>`:'';
@@ -348,7 +371,7 @@ function panels(){
    <div class="list">`+(L.slice(0,30).map(x=>{const c=chip(x);return `<div class="row"><span class="cc"><span class="sv ${c[0]}">${c[1]}</span>${x.ep>=0.01?`<span class="sv ${x.ep>=0.1?'u':'i'}" title="Probabilité d’exploitation dans les 30 jours (FIRST EPSS)">EPSS ${(x.ep*100).toFixed(x.ep<0.1?1:0)} %</span>`:''}</span><a href="https://www.cve.org/CVERecord?id=${esc(x.id)}" target="_blank" rel="noopener noreferrer">${esc(x.id)} · ${esc(x.v)} ${esc(x.p)}</a><div class="meta">${esc(x.t)} · ${fmt(x.ts)} ${x.k?'<span class="tag w">KEV</span>':''} ${recHit(x)?'<span class="tag w">périmètre</span>':''} ${x.e==='active'?'<span class="tag w">exploité</span>':''}</div></div>`}).join('')||'<div class="empty">Rien ne correspond au filtre.</div>')+'</div>':'<div class="empty">Chargement…</div>');
   cloud();
   const rs=S.ransom,ri=rs?.items||[];
-  $('#p-ransom').innerHTML=`<h2>Revendications ransomware (FR)<small><a href="https://www.ransomware.live/map/FR" target="_blank" rel="noopener noreferrer">ransomware.live</a></small></h2>`+(rs?(ri.length?'<div class="list">'+ri.slice(0,40).map(x=>`<div class="row"><span class="sv u">${esc(x.g||'?')}</span><span style="font-weight:600;overflow-wrap:anywhere">${esc(x.v)}</span><div class="meta">${esc(x.a||'secteur inconnu')} · ${fmt(x.d)}</div></div>`).join('')+'</div>':'<div class="empty">Aucune revendication française récente.</div>'):noSrv());
+  $('#p-ransom').innerHTML=`<h2>Revendications ransomware (FR)<small><a href="https://www.ransomware.live/map/FR" target="_blank" rel="noopener noreferrer">ransomware.live</a></small></h2>`+(rs?(ri.length?'<div class="list">'+ri.slice(0,40).map(x=>`<div class="row"><span class="sv u">${esc(x.g||'?')}</span><span style="font-weight:600;overflow-wrap:anywhere">${esc(x.v)}</span><div class="meta">${esc(x.a||'secteur inconnu')} · ${fmt(x.d)}${entMatch(x.v)?' <span class="tag e">ENTITÉ</span>':''}</div></div>`).join('')+'</div>':'<div class="empty">Aucune revendication française récente.</div>'):noSrv());
   renderFeed();stats();
 }
 const TYPES=[['Ransomware',/ransomware|rançongiciel|lockbit|extorsion/i],['Fuite de données',/fuite|breach|leak|données? (?:personnelles|volées)|exfiltr/i],['Phishing, arnaque',/phishing|hameçonnage|arnaque|smishing|usurpation|escroquerie/i],['Vulnérabilité',/vulnérab|vulnerab|cve-\d|zero-?day|0-?day|exploit|\brce\b|correctif|patch/i],['DDoS',/ddos|déni de service/i],['Malware, botnet',/malware|botnet|trojan|stealer|backdoor|logiciel malveillant/i]];
@@ -401,7 +424,7 @@ function cloud(){
 const ZCOLS=[['zdi','Zero Day Initiative · avis publiés',['zdi']],['cisco','Cisco PSIRT',['cisco']],['fortinet','Fortinet · PSIRT et alertes outbreak',['fortinet','fortioutbreak']],['pan','Palo Alto Networks',['pan']]];
 function setPage(p){
   S.pg=p==='zd'?'zd':'veille';store.set('cv_pg',S.pg);const z=S.pg==='zd';
-  $('#pg-veille').hidden=z;$('#pg-zd').hidden=!z;$('#vig').hidden=z;
+  $('#pg-veille').hidden=z;renderEnt();$('#pg-zd').hidden=!z;$('#vig').hidden=z;
   document.querySelectorAll('.tabs button').forEach(b=>{b.classList.toggle('on',b.dataset.p===S.pg);b.setAttribute('aria-selected',String(b.dataset.p===S.pg))});
 }
 function zdInit(){
@@ -466,7 +489,7 @@ async function netTest(){
   $('#nt').innerHTML=out.join('')+'<p style="color:var(--m);font-size:12px">Si GitHub raw est bloqué, les panneaux « Nouveaux CVE » et le miroir KEV échouent : à faire autoriser sur le proxy (raw.githubusercontent.com). cve.0xosprey.com peut échouer sans CORS, alors seuls les proxys le servent.</p>';
 }
 function exportCfg(){
-  const cfg={app:'cyber-mission-control',version:1,exportedAt:new Date().toISOString(),watch:S.watch,base:S.base,feeds:S.feeds,deletedDefaults:store.get('cv_del',[])};
+  const cfg={app:'cyber-mission-control',version:1,exportedAt:new Date().toISOString(),watch:S.watch,base:S.base,feeds:S.feeds,deletedDefaults:store.get('cv_del',[]),entities:S.ent};
   const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify(cfg,null,2)],{type:'application/json'}));l.download='cyber-mission-control-config.json';document.body.append(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(l.href),1000);
 }
 function importCfg(file){
@@ -479,10 +502,19 @@ function importCfg(file){
     S.feeds=feeds;saveFeeds();
     if(typeof c.watch==='string'){S.watch=c.watch.slice(0,500);store.set('cv_watch',S.watch)}
     if(typeof c.base==='string'&&/^https:\/\//.test(c.base)){S.base=c.base.endsWith('/')?c.base:c.base+'/';store.set('cv_base',S.base)}
+    if(typeof c.entities==='string'){S.ent=c.entities.slice(0,1000);store.set('cv_ent',S.ent)}
     store.set('cv_del',Array.isArray(c.deletedDefaults)?c.deletedDefaults.filter(x=>typeof x==='string').slice(0,50):[]);
     closeModal();refresh();
   }catch(e){alert('Import impossible : '+e.message)}};
   rd.readAsText(file);
+}
+function entModal(){
+  const m=entMatches();
+  modal(`<div class="box"><h2>Entités surveillées</h2>
+  <p style="color:var(--m);font-size:13px;margin:0 0 8px">Saisis le nom de ton organisation, tes noms de domaine et tes principaux fournisseurs, séparés par des virgules ou des retours à la ligne. Toute fuite, revendication de rançongiciel ou dépêche qui les mentionne est signalée en rouge sur la page Veille. La liste reste dans ce navigateur (elle n’est pas envoyée au dépôt) ; la comparaison ignore les accents et les majuscules et ne retient que des mots entiers.</p>
+  <textarea id="entt" rows="5" style="width:100%;background:var(--bg);color:var(--t);border:1px solid var(--b);border-radius:6px;padding:8px;font:inherit" placeholder="Exemple : nom de la collectivité, mon-domaine.fr, nom d’un fournisseur">${esc(S.ent)}</textarea>
+  <div class="foot"><span style="color:var(--m);font-size:12px">${ents().length} entité${ents().length>1?'s':''} · ${m.length} correspondance${m.length>1?'s':''} (30 j)</span><span><button data-a="entsave">Enregistrer</button> <button data-a="close">Fermer</button></span></div>`+
+  (m.length?'<h2 style="margin-top:14px">Correspondances</h2>'+m.slice(0,25).map(x=>`<div class="fl"><div><span class="sv u">${x.t}</span> <a href="${esc(safeUrl(x.link))}" target="_blank" rel="noopener noreferrer" style="color:inherit">${esc(x.label)}</a><small>${esc(x.src)} · ${fmt(x.ts)} · « ${esc(x.ent)} »</small></div></div>`).join(''):'')+`</div>`);
 }
 function exportCSV(){
   const c=v=>{v=String(v??'');if(/^[=+\-@\t\r]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
@@ -531,6 +563,8 @@ document.addEventListener('click',e=>{
   switch(a){
     case 'refresh':refresh();break;
     case 'ghf':S.ghf=b.checked;store.set('cv_ghf',S.ghf);panels();break;
+    case 'ent':e.preventDefault();entModal();break;
+    case 'entsave':{S.ent=($('#entt').value||'').slice(0,1000).trim();store.set('cv_ent',S.ent);closeModal();render();break}
     case 'page':setPage(b.dataset.p);break;
     case 'zgrp':{e.preventDefault();const k=b.dataset.k;S.zopen.has(k)?S.zopen.delete(k):S.zopen.add(k);zdRender();break}
     case 'readall':(S.pg==='zd'?S.zd:S.items).forEach(a=>S.read.add(a.id));saveRead();render();break;
