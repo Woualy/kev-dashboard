@@ -63,13 +63,13 @@ header{flex:none;display:flex;align-items:center;justify-content:space-between;h
 .hb{display:flex;align-items:center;font-size:1.1rem;margin:.28rem 0}.hb span:first-child{flex:none;width:8.4rem}.hb div{flex:1;margin:0 .6rem}.hb i{display:block;height:.95rem;border-radius:.3rem}.hb span:last-child{flex:none;width:2.2rem;text-align:right;font-weight:700}
 .wait{align-items:center;justify-content:center;font-size:2rem;color:var(--m);text-align:center}
 /* bandeau */
-#brk{flex:none;margin-top:.8rem;height:6.5rem;display:flex;border-radius:.9rem;overflow:hidden;border:1px solid var(--b);background:#0a1524}
+#brk{flex:none;margin-top:.8rem;height:7.5rem;display:flex;border-radius:.9rem;overflow:hidden;border:1px solid var(--b);background:#0a1524}
 #brk .lb{flex:none;width:15.5rem;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:2rem;letter-spacing:.07em;color:#fff;text-align:center;line-height:1.05}
 #brk .lb small{font-size:1rem;font-weight:700;letter-spacing:.03em;margin-top:.25rem;opacity:.95}
 .lb.s3{background:#d82b2b}.lb.s2{background:#d96a0a}.lb.s1{background:#1b6fa8}
 .lb .dt{display:inline-block;width:.9rem;height:.9rem;border-radius:50%;background:#fff;margin-right:.5rem;vertical-align:middle}.lb.s3 .dt{animation:pulse 1.1s infinite}
-#brk .tx{flex:1;min-width:0;padding:.5rem 1.5rem;display:flex;flex-direction:column;justify-content:center;transition:opacity .45s}
-#brk .tt{font-size:2.15rem;font-weight:800;line-height:1.13;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#brk .tx{flex:1;min-width:0;padding:.45rem 1.5rem;overflow:hidden;display:flex;flex-direction:column;justify-content:center;transition:opacity .45s}
+#brk .tt{font-size:2.1rem;font-weight:800;line-height:1.12;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #brk .sr{font-size:1.2rem;color:var(--m);margin-top:.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#brk .sr b{color:var(--a)}
 #brk .ct{flex:none;width:7rem;display:flex;align-items:center;justify-content:center;font-size:1.35rem;color:var(--m);border-left:1px solid var(--b)}
 #brk.s3{border-color:var(--u);box-shadow:0 0 .9rem rgba(255,82,82,.45)}
@@ -291,7 +291,8 @@ function brk(fade) {
   const set = () => {
     lb.className = "lb s" + s;
     lb.innerHTML = '<div><span class="dt"></span>'.concat(s >= 3 ? "URGENT" : s === 2 ? "IMPORTANT" : "ACTUALIT\xC9", "</div><small>").concat(ago(a.ts), "</small>");
-    tx.innerHTML = '<div class="tt">'.concat(esc(a.title), '</div><div class="sr"><b>').concat(esc(a.src), "</b>").concat(a.z === "alerte" ? " \xB7 alerte officielle" : a.z === "leak" ? " \xB7 fuite de donn\xE9es" : "", "</div>");
+    const L = a.title.length, fs = L > 150 ? "1.65rem" : L > 110 ? "1.8rem" : L > 80 ? "1.95rem" : "2.1rem";
+    tx.innerHTML = '<div class="tt" style="font-size:'.concat(fs, '">').concat(esc(a.title), '</div><div class="sr"><b>').concat(esc(a.src), "</b>").concat(a.z === "alerte" ? " \xB7 alerte officielle" : a.z === "leak" ? " \xB7 fuite de donn\xE9es" : "", "</div>");
     $("#bct").textContent = bi % l.length + 1 + " / " + l.length;
     b.className = s >= 3 ? "s3" : "";
     tx.style.opacity = 1;
