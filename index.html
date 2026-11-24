@@ -105,7 +105,7 @@ main[hidden],#vig[hidden]{display:none!important}
 </head>
 <body>
 <header>
-  <div class="brand">Cyber mission control<small>Veille France · actualisation automatique toutes les 30 min · build 20/11-a</small></div>
+  <div class="brand">Cyber mission control<small>Veille France · actualisation automatique toutes les 30 min · build 24/11-a</small></div>
   <nav class="tabs" role="tablist" aria-label="Pages"><button role="tab" data-a="page" data-p="veille">Veille</button><button role="tab" data-a="page" data-p="zd" id="tabzd">Zero day<small id="tabzdn"></small></button></nav>
   <div id="iocw"><input id="ioc" type="search" placeholder="IP, domaine, hash, URL, CVE  ( / )" aria-label="Rechercher un indicateur" autocomplete="off"><div id="iocr"></div></div><div id="clock"></div><div id="st"></div>
   <button data-a="refresh" title="Actualiser maintenant" aria-label="Actualiser">⟳</button>
@@ -147,7 +147,6 @@ const DEF=[
  {id:'7',name:'BleepingComputer',url:'https://www.bleepingcomputer.com/feed/',cat:'Actu Cyber',lang:'EN'},
  {id:'cti',name:'CERT-FR – CTI',url:'https://www.cert.ssi.gouv.fr/cti/feed/',cat:'Vulnérabilités',lang:'FR'},
  {id:'act',name:'CERT-FR – Actualités',url:'https://www.cert.ssi.gouv.fr/actualite/feed/',cat:'Actu Cyber',lang:'FR'},
- {id:'enisa',name:'ENISA',url:'https://www.enisa.europa.eu/rss.xml',cat:'Actu Cyber',lang:'EN'},
  {id:'cnil',name:'CNIL',url:'https://www.cnil.fr/fr/rss.xml',cat:'Actu Cyber',lang:'FR'},
  {id:'isc',name:'SANS ISC',url:'https://isc.sans.edu/rssfeed_full.xml',cat:'Actu Cyber',lang:'EN'},
  {id:'zdi',name:'ZDI – Avis publiés',url:'https://www.zerodayinitiative.com/rss/published/',cat:'Vulnérabilités',lang:'EN',zone:'zd'},
@@ -156,7 +155,7 @@ const DEF=[
  {id:'fortioutbreak',name:'Fortinet – Outbreak alerts',url:'https://filestore.fortinet.com/fortiguard/rss/outbreakalert.xml',cat:'Vulnérabilités',lang:'EN',zone:'zd'},
  {id:'pan',name:'Palo Alto Networks',url:'https://security.paloaltonetworks.com/rss.xml',cat:'Vulnérabilités',lang:'EN',zone:'zd'}];
 const zone=f=>f.zone?f.zone:(/cert\.ssi\.gouv/.test(f.url)?(/alerte/.test(f.url)?'alerte':/\/cti/.test(f.url)?'cti':/\/actualite/.test(f.url)?'fr':'avis'):/frenchbreaches/.test(f.url)?'leak':f.lang==='FR'?'fr':'int');
-function loadFeeds(){let f=store.get('cv_feeds',null)||DEF.slice();f=f.map(x=>/cisa\.gov\/cybersecurity-advisories/.test(x.url)?DEF.find(d=>d.id==='6'):x);if(!f.some(x=>/frenchbreaches/.test(x.url)))f.unshift(DEF[0]);const del=new Set(store.get('cv_del',[])),have=new Set(f.map(x=>x.id));const mig=store.get('cv_mig',0);[[1,['cti','act','enisa','cnil','isc']],[2,['zdi','cisco','fortinet','fortioutbreak','pan']]].forEach(([v,ids])=>{if(mig<v)ids.forEach(id=>{if(!have.has(id)&&!del.has(id))f.push(DEF.find(d=>d.id===id))})});if(mig<2){store.set('cv_feeds',f);store.set('cv_mig',2)}return f}
+function loadFeeds(){let f=store.get('cv_feeds',null)||DEF.slice();f=f.map(x=>/cisa\.gov\/cybersecurity-advisories/.test(x.url)?DEF.find(d=>d.id==='6'):x);if(!f.some(x=>/frenchbreaches/.test(x.url)))f.unshift(DEF[0]);f=f.filter(x=>!(x.id==='enisa'&&/enisa\.europa\.eu\/rss\.xml/.test(x.url)));const del=new Set(store.get('cv_del',[])),have=new Set(f.map(x=>x.id));const mig=store.get('cv_mig',0);[[1,['cti','act','cnil','isc']],[2,['zdi','cisco','fortinet','fortioutbreak','pan']]].forEach(([v,ids])=>{if(mig<v)ids.forEach(id=>{const d=DEF.find(x=>x.id===id);if(d&&!have.has(id)&&!del.has(id))f.push(d)})});if(mig<2){store.set('cv_feeds',f);store.set('cv_mig',2)}return f}
 const S={feeds:loadFeeds(),items:store.get('cv_cache',[]),st:{},read:new Set(store.get('cv_read',[])),kev:store.get('cv_kev',null),cve:store.get('cv_cve',null),
  watch:store.get('cv_watch','Microsoft, Fortinet, Citrix, Cisco, Ivanti, VMware, Palo Alto, Veeam'),gh:store.get('cv_gh',null),rec:store.get('cv_rec',{}),ghf:store.get('cv_ghf',true),gerr:'',kerr:'',cerr:'',map:'',loading:false,last:store.get('cv_last',0),timer:1800};
 S.items.forEach(a=>{if(!a.z){const f=S.feeds.find(x=>x.id===a.fid);a.z=f?zone(f):'int'}}); // anciens caches sans zone

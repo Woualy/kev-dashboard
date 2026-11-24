@@ -29,7 +29,6 @@ FEEDS = [  # mêmes id que le dashboard ; modifie cette liste pour ajouter des f
     dict(id="7", name="BleepingComputer", url="https://www.bleepingcomputer.com/feed/", lang="EN"),
     dict(id="cti", name="CERT-FR – CTI", url="https://www.cert.ssi.gouv.fr/cti/feed/", lang="FR"),
     dict(id="act", name="CERT-FR – Actualités", url="https://www.cert.ssi.gouv.fr/actualite/feed/", lang="FR"),
-    dict(id="enisa", name="ENISA", url="https://www.enisa.europa.eu/rss.xml", lang="EN"),
     dict(id="cnil", name="CNIL", url="https://www.cnil.fr/fr/rss.xml", lang="FR"),
     dict(id="isc", name="SANS ISC", url="https://isc.sans.edu/rssfeed_full.xml", lang="EN"),
     # page « Zero day » : avis des éditeurs et du programme ZDI (zone "zd", affichés sur leur propre onglet)

@@ -14,6 +14,17 @@ Le dashboard (`index.html`) les lit sur `raw.githubusercontent.com`, sans proxy 
 ## Fichiers produits par l'Action
 `feeds.json` (flux RSS), `kev.json`, `cve.json` (nouveaux CVE + score EPSS), `history.json`, `status.json` (météo Cloud & SaaS), `ransom.json` (revendications FR), `meta.json`.
 
+## Wallboard (écran de l'open space)
+`wallboard.html` : un seul écran très graphique (vigilance, CVE, failles exploitées, cloud, rançongiciels, fuites) avec un bandeau « URGENT / IMPORTANT / ACTUALITÉ » en bas, à partir des mêmes données.
+Paramètres d'URL : `?t=9` (secondes par titre du bandeau), `?base=https://…/data/` (autre source de données).
+Touches : flèches (titre précédent / suivant), F (plein écran). La page se recharge seule toutes les 6 heures.
+
+## Entités surveillées (page Veille uniquement)
+Bouton « Entités » : nom de l'organisation, domaines, fournisseurs. Les fuites, revendications de rançongiciels et dépêches qui les mentionnent apparaissent dans un bandeau rouge. La liste reste dans le navigateur (jamais dans le dépôt) ; elle est incluse dans l'export de configuration, qu'il ne faut donc pas publier.
+
+## Mises à jour régulières
+Les exécutions planifiées de GitHub (cron) sont « au mieux » : elles peuvent n'avoir lieu que toutes les quelques heures. Pour une cadence fiable, `trigger-update.ps1` déclenche le workflow toutes les 30 minutes depuis un poste ou serveur Windows toujours allumé (Planificateur de tâches). Le workflow se lance aussi à chaque modification de `scripts/` ou du workflow.
+
 ## Bon à savoir
 - Les flux sont définis en haut de `scripts/build_data.py` (liste `FEEDS`, mêmes id que le dashboard). Le bouton « Flux » du dashboard ne sert plus qu'au mode direct de secours.
 - Un flux qui échoue côté serveur garde son ancien contenu ; l'erreur apparaît dans `meta.json` et dans la fenêtre « Flux ».
